@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Online Payments</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Stripe.js для обработки карточных платежей -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .payment-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .payment-content {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .payment-form {
+            flex: 1;
+            min-width: 320px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+        
+        .payment-summary {
+            flex: 1;
+            min-width: 320px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+        
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-weight: 600;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f4f8;
+        }
+        
+        .form-group {
+            margin-bottom: 22px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 15px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #4a6491;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 100, 145, 0.2);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .payment-methods {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .payment-method {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            padding: 15px 10px;
+            border: 2px solid #e6e9ed;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-method.active {
+            border-color: #4a6491;
+            background-color: #f0f4f8;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .payment-method .icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .payment-method .name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            color: #2c3e50;
+        }
+        
+        .secure-notice {
+            text-align: center;
+            margin-top: 25px;
+            color: #28a745;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .card-icons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .card-icon {
+            width: 45px;
+            height: 28px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-box {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #4a6491;
+        }
+        
+        .info-box h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .info-box p {
+            color: #555;
+            line-height: 1.5;
+        }
+        
+        .moncash-logo {
+            color: #e01e5a;
+            font-weight: bold;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .payment-status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        
+        .payment-status.success {
+            display: block;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .payment-status.error {
+            display: block;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .payment-content {
+                flex-direction: column;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .payment-methods {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Инициализация Stripe с вашим публикуемым ключом
+        // Замените 'pk_test_your_publishable_key' на ваш настоящий ключ от Stripe
+        const stripe = Stripe('pk_test_your_publishable_key');
+        
+        const PaymentPage = () => {
+            const [cardNumber, setCardNumber] = useState('');
+            const [cardName, setCardName] = useState('');
+            const [expiry, setExpiry] = useState('');
+            const [cvv, setCvv] = useState('');
+            const [email, setEmail] = useState('');
+            const [phone, setPhone] = useState('');
+            const [activeMethod, setActiveMethod] = useState('card');
+            const [isProcessing, setIsProcessing] = useState(false);
+            const [paymentStatus, setPaymentStatus] = useState({ type: '', message: '' });
+            
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setIsProcessing(true);
+                setPaymentStatus({ type: '', message: '' });
+                
+                try {
+                    if (activeMethod === 'card') {
+                        await processCardPayment();
+                    } else if (activeMethod === 'paypal') {
+                        await processPaypalPayment();
+                    } else if (activeMethod === 'moncash') {
+                        await processMonCashPayment();
+                    } else if (activeMethod === 'applepay') {
+                        await processApplePayPayment();
+                    }
+                } catch (error) {
+                    setPaymentStatus({ type: 'error', message: `Payment failed: ${error.message}` });
+                } finally {
+                    setIsProcessing(false);
+                }
+            };
+            
+            const processCardPayment = async () => {
+                // Создаем элемент для ввода карточных данных Stripe
+                const cardElement = elements.create('card');
+                
+                // В реальном приложении здесь будет запрос к вашему бэкенду
+                // для создания платежного интента и обработки платежа
+                
+                // Имитация успешного платежа
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // В реальном приложении здесь будет обработка ответа от Stripe
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Card payment processed successfully! Transaction ID: ch_123456789' 
+                });
+            };
+            
+            const processPaypalPayment = async () => {
+                // В реальном приложении здесь будет интеграция с PayPal API
+                
+                // Имитация перенаправления на PayPal
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Redirecting to PayPal for payment authorization...' 
+                });
+                
+                // В реальном приложении здесь будет window.location.href = paypalApprovalUrl;
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'PayPal payment completed successfully!' 
+                });
+            };
+            
+            const processMonCashPayment = async () => {
+                // Проверяем номер телефона
+                if (!phone || phone.length < 8) {
+                    throw new Error('Please enter a valid phone number for MonCash');
+                }
+                
+                // В реальном приложении здесь будет запрос к MonCash API
+                // для создания транзакции
+                
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Sending payment request to your MonCash account...' 
+                });
+                
+                // Имитация запроса к MonCash API
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Имитация успешного платежа через MonCash
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'MonCash payment completed successfully! Check your phone for confirmation.' 
+                });
+            };
+            
+            const processApplePayPayment = async () => {
+                // Проверяем поддержку Apple Pay
+                if (!window.ApplePaySession) {
+                    throw new Error('Apple Pay is not supported in this browser');
+                }
+                
+                // В реальном приложении здесь будет инициализация Apple Pay
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Initializing Apple Pay...' 
+                });
+                
+                // Имитация процесса Apple Pay
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Apple Pay payment completed successfully!' 
+                });
+            };
+            
+            const formatCardNumber = (value) => {
+                const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+                const matches = v.match(/\d{4,16}/g);
+                const match = matches && matches[0] || '';
+                const parts = [];
+                
+                for (let i = 0, len = match.length; i < len; i += 4) {
+                    parts.push(match.substring(i, i + 4));
+                }
+                
+                if (parts.length) {
+                    return parts.join(' ');
+                } else {
+                    return value;
+                }
+            };
+            
+            const handleCardNumberChange = (e) => {
+                const formatted = formatCardNumber(e.target.value);
+                setCardNumber(formatted);
+            };
+            
+            // Инициализация элементов Stripe
+            const elements = stripe.elements();
+            
+            return (
+                <div className="payment-container">
+                    <div className="header">
+                        <h1>Secure Online Payments</h1>
+                        <p>Fast and secure payment processing for your purchases</p>
+                    </div>
+                    
+                    <div className="payment-content">
+                        <div className="payment-form">
+                            <h2 className="section-title">Payment Method</h2>
+                            
+                            <div className="payment-methods">
+                                <div 
+                                    className={`payment-method ${activeMethod === 'card' ? 'active' : ''}`}
+                                    onClick={() => setActiveMethod('card')}
+                                >
+                                    <span className="icon">💳</span>
+                                    <span className="name">Credit Card</span>
+                                </div>
+                                <div 
+                                    className={`payment-method ${activeMethod === 'paypal' ? 'active' : ''}`}
+                                    onClick={() => setActiveMethod('paypal')}
+                                >
+                                    <span className="icon">📱</span>
+                                    <span className="name">PayPal</span>
+                                </div>
+                                <div 
+                                    className={`payment-method ${activeMethod === 'moncash' ? 'active' : ''}`}
+                                    onClick={() => setActiveMethod('moncash')}
+                                >
+                                    <span className="icon">💸</span>
+                                    <span className="name"><span className="moncash-logo">Mon Cash</span></span>
+                                </div>
+                                <div 
+                                    className={`payment-method ${activeMethod === 'applepay' ? 'active' : ''}`}
+                                    onClick={() => setActiveMethod('applepay')}
+                                >
+                                    <span className="icon">🍎</span>
+                                    <span className="name">Apple Pay</span>
+                                </div>
+                            </div>
+                            
+                            <form onSubmit={handleSubmit}>
+                                {activeMethod === 'card' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label>Card Number</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="1234 5678 9012 3456"
+                                                value={cardNumber}
+                                                onChange={handleCardNumberChange}
+                                                maxLength="19"
+                                                required
+                                            />
+                                            <div className="card-icons">
+                                                <div className="card-icon">VISA</div>
+                                                <div className="card-icon">MC</div>
+                                                <div className="card-icon">AMEX</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="form-group">
+                                            <label>Cardholder Name</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="JOHN DOE"
+                                                value={cardName}
+                                                onChange={(e) => setCardName(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Expiry Date</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="MM/YY"
+                                                    value={expiry}
+                                                    onChange={(e) => setExpiry(e.target.value)}
+                                                    maxLength="5"
+                                                    required
+                                                />
+                                            </div>
+                                            
+                                            <div className="form-group">
+                                                <label>CVV Code</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="123"
+                                                    value={cvv}
+                                                    onChange={(e) => setCvv(e.target.value)}
+                                                    maxLength="3"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                                
+                                {activeMethod === 'paypal' && (
+                                    <div className="form-group">
+                                        <p>After clicking "Pay Now", you will be redirected to PayPal to complete your payment securely.</p>
+                                    </div>
+                                )}
+                                
+                                {activeMethod === 'moncash' && (
+                                    <div className="form-group">
+                                        <label>Phone Number</label>
+                                        <input
+                                            type="tel"
+                                            className="form-control"
+                                            placeholder="Your Mon Cash phone number"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            required
+                                        />
+                                        <p style={{marginTop: '10px', fontSize: '14px', color: '#666'}}>
+                                            Enter your Mon Cash registered phone number. You will receive a confirmation prompt on your device.
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {activeMethod === 'applepay' && (
+                                    <div className="form-group">
+                                        <p>After clicking "Pay Now", the Apple Pay window will open to complete your payment.</p>
+                                    </div>
+                                )}
+                                
+                                <div className="form-group">
+                                    <label>Email for receipt</label>
+                                    <input
+                                        type="email"
+                                        className="form-control"
+                                        placeholder="email@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                
+                                <button type="submit" className="btn" disabled={isProcessing}>
+                                    {isProcessing ? <span className="loading"></span> : 'Pay Now'}
+                                </button>
+                                
+                                {paymentStatus.message && (
+                                    <div className={`payment-status ${paymentStatus.type}`}>
+                                        {paymentStatus.message}
+                                    </div>
+                                )}
+                                
+                                <div className="secure-notice">
+                                    🔒 Your data is securely protected
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div className="payment-summary">
+                            <h2 className="section-title">Order Summary</h2>
+                            
+                            <div className="summary-item">
+                                <span>Products</span>
+                                <span>$98.00</span>
+                            </div>
+                            
+                            <div className="summary-item">
+                                <span>Shipping</span>
+                                <span>$12.00</span>
+                            </div>
+                            
+                            <div className="summary-item">
+                                <span>Tax</span>
+                                <span>$9.80</span>
+                            </div>
+                            
+                            <div className="summary-total">
+                                <span>Total</span>
+                                <span>$119.80</span>
+                            </div>
+                            
+                            <div className="info-box">
+                                <h3>Money-Back Guarantee</h3>
+                                <p>If you're not satisfied with your purchase, we offer a 30-day money-back guarantee with no questions asked.</p>
+                            </div>
+                            
+                            <div className="info-box">
+                                <h3>Customer Support</h3>
+                                <p>Phone: +1 (800) 123-4567</p>
+                                <p>Email: support@example.com</p>
+                                <p>Hours: Mon-Fri, 9am-6pm EST</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const App = () => {
+            return <PaymentPage />;
+        };
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
