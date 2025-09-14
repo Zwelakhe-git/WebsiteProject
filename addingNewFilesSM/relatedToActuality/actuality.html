@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Portal - Actuality</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(to right, #0f9ea3a2, #043897);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+             color: #2426acd2;
+        }
+        
+        .logo span {
+            color: #f30051c5;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 20px;
+        }
+        
+        nav ul li a {
+            color: rgb(255, 255, 255);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav ul li a:hover {
+            color: #ffcc00;
+        }
+        
+        /* background:url('https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover; */
+        .hero {
+            background:url('images/logo_shortcut_icon.png') no-repeat center center/cover;
+            height: 400px; 
+            display: flex;
+            align-items: center;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            margin-bottom: 30px;
+        }
+        
+       .hero {
+        background: url('images/Konektem\ .png') no-repeat center center;
+        background-color: #2953ad; 
+        background-size: contain; 
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center; 
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        margin-bottom: 30px;
+}
+
+
+        /* .hero-content {
+            max-width: 700px;
+            padding: 30px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        } */
+        
+        .section-nav {
+            background-color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .section-nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        
+        .section-nav ul li {
+            margin: 5px 10px;
+        }
+        
+        .section-nav ul li a {
+            text-decoration: none;
+            color: #2b6cb0;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        
+        .section-nav ul li a:hover,
+        .section-nav ul li a.active {
+            background-color: #2b6cb0;
+            color: white;
+        }
+        
+        .news-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            color: #1a4b8c;
+        }
+        
+        .view-all {
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .news-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 3px 10px #0000001a;
+        }
+        
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .news-img {
+            height: 180px;
+            overflow: hidden;
+        }
+        
+        .news-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        
+        .news-card:hover .news-img img {
+            transform: scale(1.05);
+        }
+        
+        .news-content {
+            padding: 20px;
+            position: relative;
+        }
+        
+        .news-date {
+            color: #666;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+        
+        .news-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .news-excerpt {
+            color: #666;
+            margin-bottom: 15px;
+            max-height: 60px;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        
+        .news-excerpt.expanded {
+            max-height: 500px;
+        }
+        
+        .read-more {
+            display: inline-block;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .read-more:hover {
+            text-decoration: underline;
+        }
+        
+        .full-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            color: #444;
+        }
+        
+        .full-content.expanded {
+            max-height: 1000px;
+        }
+        
+        .breaking-news {
+            background-color: #ec0505bb;
+            color: white;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .breaking-news h2 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .breaking-news h2 i {
+            margin-right: 10px;
+        }
+        
+        footer {
+            background-color: #355b94;
+            color: white;
+            padding: 40px 0;
+            margin-top: 40px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .footer-section h3 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section ul li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-section ul li a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-section ul li a:hover {
+            color: white;
+        }
+        
+        .social-icons a {
+            color: white;
+            margin-right: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #2b6cb0;
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin-top: 15px;
+                justify-content: center;
+            }
+            
+            .hero {
+                height: 300px;
+            }
+            
+            .hero-content {
+                text-align: center;
+                margin: 0 auto;
+            }
+            
+            .section-nav ul {
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">Konektem<span>News</span></div>
+                <nav>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Politics</a></li>
+                        <li><a href="#">Business</a></li>
+                        <li><a href="#">Technology</a></li>
+                        <!-- <li><a href="#">Sports</a></li> -->
+                        <!-- <li><a href="#">Entertainment</a></li> -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <!-- <h1>Stay Informed with Latest News</h1> -->
+                <!-- <p>Breaking news, in-depth reporting, and thoughtful analysis from around the world</p> -->
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="breaking-news">
+            <h2><i class="fas fa-bolt"></i> BREAKING NEWS</h2>
+            <p>Ukraine shoots down two Russian aircraft in disastrous day for Kremlin - Huge blow for Putin</p>
+        </div>
+
+        <div class="section-nav">
+            <div class="container">
+                <ul>
+                    <li><a href="#politics" class="active">Politics</a></li>
+                    <li><a href="#business">Business</a></li>
+                    <li><a href="#technology">Technology</a></li>
+                    <li><a href="#sports">Sports</a></li>
+                    <li><a href="#entertainment">Entertainment</a></li>
+                    <li><a href="#health">Health</a></li>
+                    <li><a href="#science">Science</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="politics" class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">Politics</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="images/putin-and-trump.jpg" alt="Politics news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">September 08, 2025</div>
+                        <h3 class="news-title">Putin Meets With Trum - Massive Cold Water To Europe</h3>
+                        <p class="news-excerpt">The 2025 Russia–United States Summit (also known as the Alaska 2025 or the Trump–Putin Summit) was a summit meeting between United States president Donald Trump and Russian president Vladimir Putin. It was held on August 15, 2025, at Joint Base Elmendorf–Richardson in Anchorage, Alaska.</p>
+                        <div class="full-content">
+                            <p>The main topic of discussion was the ongoing Russo-Ukrainian War. The summit ended without an agreement being announced, although Trump later intimated that in his view the onus was now on Ukraine to cede territory in order to end the war.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="images/politech-africa.jpg" alt="Politics news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">September 08, 2025</div>
+                        <h3 class="news-title">SPBPU - Peter The Great University With African Leaders To Launch Educational Programs in Africa </h3>
+                        <p class="news-excerpt">Perhaps, it was about the cooperation of the Peter the Great St. Petersburg Polytechnic University (SPbPU) with African countries in the field of education.</p>
+                        <div class="full-content">
+                            <p>In January 2025, it was reported that at the 12th meeting of the mixed intergovernmental Russian-Algerian commission, agreements on scientific exchanges and joint educational programs were signed between SPbPU and a number of Algerian universities.</p>
+                            <p>SPbPU is the coordinator of the consortium of Russian and African universities and research organizations "Russian-African Network University" (RAFU). The consortium implements, in particular, short-term educational programs for African citizens.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="images/politech_logo.jpg" alt="Politics news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">September 08, 2025</div>
+                        <h3 class="news-title">SPBPU Remains At The Top-10 Univerities in Russia 7 Years In a Row By RAEX-100</h3>
+                        <p class="news-excerpt">SPbPU entered the top ten national universities in Russia. Russian education.</p>
+                        <div class="full-content">
+                            <p>It is possible that this was a reference to a post from the Polytech Global VKontakte community published on June 10, 2025. It reported that Peter the Great St. Petersburg Polytechnic University (SPbPU) took 8th place in the ranking of the best universities in Russia (RAEX-2025).</p>
+                            <p>The ranking is based on surveys of more than 150,000 students, teachers, and employers.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="business" class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">Business</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1665686374006-b8f04cf62d57?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Business news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 15, 2025</div>
+                        <h3 class="news-title">Stock Market Reaches Record High Amid Economic Recovery</h3>
+                        <p class="news-excerpt">Major indices surge as economic indicators show strong post-pandemic recovery trends.</p>
+                        <div class="full-content">
+                            <p>The S&P 500 and Dow Jones Industrial Average both closed at record highs today, continuing a rally that has now lasted for seven consecutive trading sessions. The NASDAQ also saw significant gains, particularly in technology stocks.</p>
+                            <p>Market analysts point to stronger-than-expected employment data and consumer spending figures as key drivers of the rally. "The economy is showing remarkable resilience," noted chief economist Maria Johnson. "We're seeing broad-based growth across multiple sectors."</p>
+                            <p>Despite the positive trends, some analysts caution that inflation concerns could temper market enthusiasm in the coming months.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Business news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 14, 2025</div>
+                        <h3 class="news-title">Tech Giant Announces Major Acquisition Deal</h3>
+                        <p class="news-excerpt">Industry leader expands portfolio with strategic purchase of emerging AI startup.</p>
+                        <div class="full-content">
+                            <p>Global tech conglomerate InnovateCorp has announced its acquisition of NeuralMind, an artificial intelligence startup specializing in natural language processing. The deal, valued at approximately $2.3 billion, represents one of the largest AI acquisitions this year.</p>
+                            <p>"NeuralMind's technology perfectly complements our existing AI capabilities," said InnovateCorp CEO Sarah Chen. "This acquisition will accelerate our development of next-generation conversational AI systems."</p>
+                            <p>The acquisition is subject to regulatory approval but is expected to close by the end of the third quarter. NeuralMind will continue to operate as an independent subsidiary, with all current employees retaining their positions.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1491336477066-31156b5e4f35?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Business news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 13, 2025</div>
+                        <h3 class="news-title">Central Banks Announce Coordinated Response to Inflation</h3>
+                        <p class="news-excerpt">Global financial institutions take unified approach to address rising inflation concerns.</p>
+                        <div class="full-content">
+                            <p>In an unprecedented move, central banks from major economies have announced a coordinated strategy to address persistently high inflation rates. The plan includes synchronized interest rate adjustments and liquidity management measures.</p>
+                            <p>"Inflation is a global challenge that requires a global response," stated the chair of the Federal Reserve. "By working together, we can achieve greater impact while minimizing disruptive capital flows between economies."</p>
+                            <p>The announcement has been generally well-received by markets, though some economists have questioned the long-term effectiveness of the approach. The first phase of the coordinated policy is set to be implemented next month.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="technology" class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">Technology</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Technology news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 15, 2025</div>
+                        <h3 class="news-title">Breakthrough in Quantum Computing Announced</h3>
+                        <p class="news-excerpt">Researchers achieve significant milestone in quantum bit stability, paving way for practical applications.</p>
+                        <div class="full-content">
+                            <p>A team of researchers at Quantum Labs International has announced a major breakthrough in quantum computing stability. Their new error-correction technique has demonstrated the ability to maintain quantum coherence for unprecedented durations, addressing one of the fundamental challenges in practical quantum computing.</p>
+                            <p>"This represents a quantum leap forward, quite literally," said Dr. Elena Rodriguez, lead researcher on the project. "We've effectively extended the window for reliable quantum operations by several orders of magnitude."</p>
+                            <p>The breakthrough could accelerate the development of practical quantum computers capable of solving complex problems in fields ranging from drug discovery to climate modeling. The team has published their findings in the latest issue of Nature Physics.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1517430816045-df4b7de11d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Technology news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 14, 2025</div>
+                        <h3 class="news-title">New AI Model Demonstrates Remarkable Creative Abilities</h3>
+                        <p class="news-excerpt">Latest neural network architecture shows unprecedented performance in creative tasks.</p>
+                        <div class="full-content">
+                            <p>Researchers at the Artificial Intelligence Research Institute have developed a new neural network model called CreativeNet that demonstrates remarkable abilities in artistic creation. The model can generate original paintings, compose music, and even write poetry that is indistinguishable from human-created works in blind tests.</p>
+                            <p>"What sets CreativeNet apart is its ability to understand and work within aesthetic principles rather than just mimicking patterns," explained lead researcher Dr. James Wilson. "It's not just replicating—it's creating with intentionality."</p>
+                            <p>The model has raised interesting questions about the nature of creativity and the potential for AI to collaborate with human artists. The research team is exploring applications in design, entertainment, and therapy.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Technology news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 13, 2025</div>
+                        <h3 class="news-title">Tech Companies Unveil Next-Generation Smart Devices</h3>
+                        <p class="news-excerpt">Annual tech conference showcases innovative devices featuring enhanced connectivity and AI capabilities.</p>
+                        <div class="full-content">
+                            <p>At the annual Global Tech Expo, leading technology companies unveiled their latest generation of smart devices, featuring significant advancements in AI integration, battery life, and seamless connectivity. The new products include smartphones, wearables, and home automation systems that work together more intuitively than ever before.</p>
+                            <p>"We're moving toward an era where your devices anticipate your needs rather than simply responding to commands," said TechVision CEO Michael Zhang during his keynote address. "The ecosystem is becoming intelligent as a whole, not just as individual components."</p>
+                            <p>Notable innovations included a smartwatch with week-long battery life, phones with holographic display capabilities, and home assistants that can recognize different household members by voice and tailor responses accordingly.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About NewsPortal</h3>
+                    <p>Delivering accurate and timely news coverage from around the world. Our mission is to inform, educate, and engage our readers.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="#">Politics</a></li>
+                        <li><a href="#">Business</a></li>
+                        <li><a href="#">Technology</a></li>
+                        <li><a href="#">Sports</a></li>
+                        <li><a href="#">Entertainment</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect With Us</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Subscribe to Newsletter</h3>
+                    <p>Stay updated with our latest news and stories by subscribing to our newsletter.</p>
+                    <form>
+                        <input type="email" placeholder="Your Email Address" style="padding:10px; width:100%; margin-top:10px; border-radius:4px; border:none;">
+                        <button type="submit" style="background:#ffcc00; color:#1a4b8c; border:none; padding:10px 15px; margin-top:10px; border-radius:4px; font-weight:bold; cursor:pointer;">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 NewsPortal. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for section navigation
+        document.querySelectorAll('.section-nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                
+                window.scrollTo({
+                    top: targetSection.offsetTop - 70,
+                    behavior: 'smooth'
+                });
+                
+                // Update active class
+                document.querySelectorAll('.section-nav a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Update active nav link based on scroll position
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.news-section');
+            const navLinks = document.querySelectorAll('.section-nav a');
+            
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (pageYOffset >= (sectionTop - 100)) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // Read More functionality
+        document.querySelectorAll('.read-more').forEach(button => {
+            button.addEventListener('click', function() {
+                const fullContent = this.previousElementSibling;
+                const excerpt = fullContent.previousElementSibling;
+                
+                if (this.getAttribute('data-state') === 'more') {
+                    // Expand content
+                    fullContent.classList.add('expanded');
+                    excerpt.classList.add('expanded');
+                    this.innerHTML = 'Read Less <i class="fas fa-chevron-up"></i>';
+                    this.setAttribute('data-state', 'less');
+                } else {
+                    // Collapse content
+                    fullContent.classList.remove('expanded');
+                    excerpt.classList.remove('expanded');
+                    this.innerHTML = 'Read More <i class="fas fa-chevron-down"></i>';
+                    this.setAttribute('data-state', 'more');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
