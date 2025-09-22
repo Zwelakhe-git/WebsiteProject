@@ -6,32 +6,30 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="shortcut icon" type="image/png" href="/media/images/logo_shortcut_icon.png"/>
+    <link rel="shortcut icon" type="image/png" href="/media/images/favicon.png"/>
     <link rel="stylesheet" href="/CSS/globalStyle.css"/>
-    <link rel="stylesheet" media="only screen and (max-width : 768px)" href="/CSS/mobileStyle.css"/>
-    <link rel="stylesheet" media="only screen and (max-width : 768px)" href="/CSS/sectionsStyle.css"/>
-    <link rel="stylesheet" href="/CSS/slidesStyle.css"/>
-    <link rel="stylesheet" href="/CSS/indexStyle.css"/>
-    <link rel="stylesheet" href="/CSS/headerScroll.css"/>
-    <link rel="stylesheet" href="/CSS/bigScreenStyle.css"/>
+    <link rel="stylesheet" href="/CSS/mobileStyle.css"/>
+    <link rel="stylesheet" href="/CSS/sectionsStyle.css"/>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js" nomodule></script>
-    <script type="text/javascript" src="/JS/newsFadeAnimation.js"></script>
-    <script type="text/javascript" src="/JS/rpVidScript.js"></script>
-    <script type="text/javascript" src="/JS/scriptIndx.js"></script>
-    <script type="text/javascript" src="/JS/indexScript.js"></script>
-    <script type="text/javascript" src="/JS/indexPageLoader.js"></script>
+    <script type="module" src="/JS/mainDOMEventListener.js"></script>
     <script type="text/javascript" src="/JS/slidesScript.js"></script>
-    <script type="text/javascript" src="/JS/searchPg.js"></script>
     
-    <!-- <link rel="stylesheet" href="/CSS/globalStyle.css"/>
+    <!--
+    <link rel="stylesheet" href="/CSS/indexstyle.css"/>
+    <link rel="stylesheet" href="/CSS/slidesStyle.css"/>
+    <link rel="stylesheet" href="/CSS/headerScroll.css"/>
+    <link rel="stylesheet" media="only screen and (min-width : 768px)" href="/CSS/bigScreenStyle.css"/>
+    <script type="text/javascript" src="/JS/indexScript.js"></script>
      -->
     
   </head>
-  <body>
+  <body class="app">
     <div id="top-bar" class="no-margin flxDisp">
       <div id="logo">
-        <img alt="logo" type="image/png" width="50" height="50" src="/media/images/logo_shortcut_icon.png"/>
+        <img alt="logo" type="image/png" width="50" height="50" src="/media/images/Konektem.png"/>
       </div>
       <div id="top-bar-content" class="flxDisp full-h">
         <!-- <div class="icon-container">
@@ -61,18 +59,18 @@
     </div>
     <div id="nav-panel" class="grey-clr no-ovrflw no-margin">
       <nav class="no-ovrflw">
-        <a tabindex="0" class="bdr-10">
+        <a tabindex="0" class="bdr-10" href="/actuality.html">
           <ion-icon name="calendar-clear-outline"></ion-icon>
           <span>Actuality</span>
         </a>
-        <a tabindex="0" href="#music-charts-video" class="bdr-10">
+        <a tabindex="0" class="bdr-10" href="/charts.html">
           <ion-icon name="bar-chart-outline"></ion-icon>
           <span>Music Charts</span>
         </a>
         <a tabindex="0" href="#services-panel" class="bdr-10">
           Services
         </a>
-        <a tabindex="0" class="bdr-10">
+        <a tabindex="0" class="bdr-10" href="http://localhost:8080/livestream.html">
           <ion-icon name="radio-outline"></ion-icon>
           <span>Live Streaming</span>
         </a>
@@ -91,7 +89,7 @@
       </div>
     </div>
     <div class="gap" id="last-news-gap"></div>
-    <div id="events-section" class="margin-rl-1">
+    <div id="events-section" class="margin-rl-1 colDir">
       <div id="events-section-bg" class="full-h"></div>
       <div class="section-info">
         <h1>EVENTS</h1>
@@ -100,58 +98,21 @@
       </div>
     </div>
     <div class="gap" id="events-section-gap"></div>
-    <div id="middle-panel" class="margin-rl-1">
-      <div id="music-charts-video">
-        <!-- new update: combine charts and videos -->
-        <div class="section-info">
+    <div id="middle-panel" class="margin-rl-1 colDir">
+      <div class="section-info">
           <h1>
             VIDEOS AND CHARTS
           </h1>
         </div>
+      <div id="music-charts-video" class="flxDisp colDir">
+        <!-- new update: combine charts and videos -->
+        
         <div class="media-row-content">
           <!-- this space should be automatically filled in JS -->
-          
-          <div class="audio-charts">
-            <div class="grey-bg trk-bg">
-              <div class="music-track">
-                <img alt="track image"
-                src="/media/images/SUx182_2x.webp">
-                <p class="track name">Cardi B</p>
-              </div>
-            </div> 
-            <div class="grey-bg trk-bg">
-              <div class="music-track">
-                <img alt="track image"
-                src="/media/images/music/BIGJuicy.png">
-                <p class="track name">Juicy: the Nortorios B.I.G</p>
-              </div>
-            </div> 
-            <div class="grey-bg trk-bg">
-              <div class="music-track">
-                <img alt="track image"
-                src="/media/images/music/eminemBtflP.png">
-                <p class="track name">Eminem beautiful Pain</p>
-              </div>
-            </div> 
-            <div class="grey-bg trk-bg">
-              <div class="music-track">
-                <img alt="track image"
-                src="/media/images/music/akonFreedom.jpg">
-                <p class="track name">Akon: Freedom</p>
-              </div>
-            </div> 
-            <div class="grey-bg trk-bg">
-              <div class="music-track">
-                <img alt="track image"
-                src="/media/images/music/akonTroubMakers.jpg">
-                <p class="track name">Akon Troublemakers</p>
-              </div>
-            </div> 
-          </div>
+          <div class="audio-charts"></div>
         </div>
         <div class="media-row-content">
           <!-- this space should be automatically filled in JS -->
-          
           <div class="audio-charts">
             <div class="music-track"></div>
             <div class="music-track"></div>
@@ -189,11 +150,12 @@
       <div class="section-info">
         <h1>What success on Konektem looks like</h1>
       </div>
-      <video type="video/mp4" src="http://localhost/media/videos/vid_68a347d16ed8e3.43824293_po3.mp4" poster="" autoplay muted loop controls>
+      <video type="video/mp4" src="/media/videos/vid_68a347d16ed8e3.43824293_po3.mp4" poster="" autoplay muted loop controls>
         Browser does not support the &gt;video> element
       </video>
     </div>
-    <div class="gap" id="tmp-vid-gap"></div>
+    </div>
+    <div class="gap" id="sub-gap"></div>
     <div id="partners-panel" class="margin-rl-1">
       <div class="section-info">
         <h1>
