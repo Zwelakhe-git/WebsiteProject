@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Online Payments</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Stripe.js для обработки карточных платежей -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js" nomodule></script>
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        html, body, #root {
+            width: 100%;
+            font-family: Roboto, Arial, sans-serif;
+            margin: 0;
+            background: whitesmoke;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .flxDisp {
+            display: flex;
+        }
+        
+        .full-h {
+            height: 100%;
+        }
+        
+        .no-margin {
+            margin: 0 !important;
+        }
+        
+        /* Top Bar Styles */
+        #top-bar {
+            background-color: #1d0962;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .top-bar-container {
+            background-image: url("media/images/top_bar_bg.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 100%;
+            height: 80px;
+            display: flex;
+            flex-direction: row;
+            padding: 8px 0;
+        }
+        
+        #logo {
+            width: 40px;
+            height: 40px;
+            margin: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        #top-bar-content {
+            width: 90%;
+            padding: 5px 12px;
+            flex-direction: row;
+            justify-content: space-evenly;
+            gap: 4px;
+            margin-top: 8px;
+            height: calc(100% - 8px);
+        }
+        
+        .container.links.search {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            height: 100%;
+            width: calc(100% - 60px);
+        }
+        
+        .social {
+            flex-direction: row;
+            height: fit-content;
+            gap: 12px;
+        }
+        
+        .search-bar {
+            flex-direction: row;
+            align-items: center;
+            border-radius: 4px;
+            gap: 8px;
+            padding: 0 4px;
+            background-color: white;
+            width: calc(100% - 32px);
+            height: 32px;
+            cursor: pointer;
+        }
+        
+        .search-bar .input {
+            caret-color: black;
+            height: calc(100% - 8px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .search-bar .input span {
+            width: 100%;
+            padding: 0 4px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-container ion-icon {
+            font-size: 36px;
+            transition: transform 0.3ms ease;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .icon-container ion-icon:active {
+            transform: scale(1.1);
+        }
+        
+        .social ion-icon,
+        .social svg,
+        .social i {
+            color: white;
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        
+        /* Search Page Styles */
+        #search-pg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 80px;
+        }
+        
+        .search-pg-bar {
+            width: 90%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-pg-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 8px;
+        }
+        
+        .search-pg-bar ion-icon {
+            font-size: 20px;
+            color: #555;
+            cursor: pointer;
+        }
+        
+        /* Navigation Panel Styles */
+        #nav-panel {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: white;
+            z-index: 1001;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        #nav-panel.open {
+            right: 0;
+        }
+        
+        .nav-panel-content {
+            padding: 70px 16px 16px;
+        }
+        
+        .nav-panel-content a {
+            display: block;
+            padding: 12px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-panel-content a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .close-nav {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        /* Payment Page Styles */
+        .payment-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #538fcc, #4a6491);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .payment-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .payment-form {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .payment-summary {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #2c3e50;
+            font-weight: 600;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f4f8;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #4a6491;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(74, 100, 145, 0.2);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .payment-methods {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .payment-method {
+            flex: 1;
+            min-width: 70px;
+            text-align: center;
+            padding: 10px 6px;
+            border: 2px solid #e6e9ed;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-method.active {
+            border-color: #4a6491;
+            background-color: #f0f4f8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .payment-method .icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+            display: block;
+        }
+        
+        .payment-method .name {
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+        
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px solid #eee;
+            color: #2c3e50;
+        }
+        
+        .secure-notice {
+            text-align: center;
+            margin-top: 16px;
+            color: #28a745;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        
+        .card-icons {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        
+        .card-icon {
+            width: 35px;
+            height: 22px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-box {
+            margin-top: 16px;
+            padding: 14px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #4a6491;
+        }
+        
+        .info-box h3 {
+            color: #2c3e50;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .info-box p {
+            color: #555;
+            line-height: 1.5;
+            font-size: 13px;
+        }
+        
+        .moncash-logo {
+            color: #e01e5a;
+            font-weight: bold;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .payment-status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 14px;
+            text-align: center;
+            display: none;
+            font-size: 13px;
+        }
+        
+        .payment-status.success {
+            display: block;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .payment-status.error {
+            display: block;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Desktop Layout */
+        @media (min-width: 768px) {
+            .top-bar-container {
+                height: 70px;
+                padding: 10px 0;
+            }
+            
+            #logo {
+                width: 50px;
+                height: 50px;
+                margin: 0 15px;
+            }
+            
+            .search-bar {
+                height: 35px;
+            }
+            
+            .search-bar .input span {
+                font-size: 14px;
+            }
+            
+            .icon-container ion-icon {
+                font-size: 48px;
+            }
+            
+            .social ion-icon,
+            .social svg,
+            .social i {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .header p {
+                font-size: 16px;
+            }
+            
+            .payment-form, .payment-summary {
+                padding: 25px;
+            }
+            
+            .section-title {
+                font-size: 20px;
+            }
+            
+            .form-control {
+                padding: 12px 14px;
+                font-size: 15px;
+            }
+            
+            .btn {
+                padding: 14px;
+                font-size: 16px;
+            }
+            
+            .payment-method .icon {
+                font-size: 24px;
+            }
+            
+            .payment-method .name {
+                font-size: 13px;
+            }
+            
+            .summary-item {
+                font-size: 14px;
+            }
+            
+            .summary-total {
+                font-size: 18px;
+            }
+            
+            .secure-notice {
+                font-size: 14px;
+            }
+            
+            .card-icon {
+                width: 40px;
+                height: 25px;
+                font-size: 11px;
+            }
+            
+            .info-box h3 {
+                font-size: 16px;
+            }
+            
+            .info-box p {
+                font-size: 14px;
+            }
+            
+            .payment-status {
+                font-size: 14px;
+            }
+        }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 480px) {
+            .payment-container {
+                padding: 12px;
+            }
+            
+            .header {
+                padding: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .header p {
+                font-size: 13px;
+            }
+            
+            .payment-form, .payment-summary {
+                padding: 16px;
+                min-width: 100%;
+            }
+            
+            .section-title {
+                font-size: 17px;
+            }
+            
+            .form-control {
+                padding: 9px 11px;
+                font-size: 13px;
+            }
+            
+            .btn {
+                padding: 11px;
+                font-size: 14px;
+            }
+            
+            .payment-methods {
+                gap: 8px;
+            }
+            
+            .payment-method {
+                min-width: 65px;
+                padding: 8px 4px;
+            }
+            
+            .payment-method .icon {
+                font-size: 18px;
+            }
+            
+            .payment-method .name {
+                font-size: 11px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .summary-item {
+                font-size: 12px;
+            }
+            
+            .summary-total {
+                font-size: 15px;
+            }
+            
+            .info-box {
+                padding: 12px;
+            }
+            
+            .info-box h3 {
+                font-size: 13px;
+            }
+            
+            .info-box p {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .payment-content {
+                flex-direction: column;
+            }
+            
+            .payment-methods {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div id="top-bar" class="no-margin flxDisp">
+        <div class="top-bar-container">
+            <div id="logo">
+                <img alt="logo" type="image/jpg" width="50" height="50" src="media/images/Konektem.png"/>
+            </div>
+            <div id="top-bar-content" class="flxDisp full-h">
+                <div class="container links search flxDisp">
+                    <div class="search-bar flxDisp">
+                        <div class="input search-inp no-outln no-bdr full-w">
+                            <span>Search</span>
+                        </div>
+                        <ion-icon name="search-outline" class="fnt24 search-icon"></ion-icon>
+                    </div>
+                    <div class="social evenFlx">
+                        <ion-icon name="logo-facebook"></ion-icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
+                            <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal">
+                                <g transform="scale(8.53333,8.53333)">
+                                    <path d="M26.37,26l-8.795,-12.822l0.015,0.012l7.93,-9.19h-2.65l-6.46,7.48l-5.13,-7.48h-6.95l8.211,11.971l-0.001,-0.001l-8.66,10.03h2.65l7.182,-8.322l5.708,8.322zM10.23,6l12.34,18h-2.1l-12.35,-18z"></path>
+                                </g>
+                            </g>
+                        </svg>
+                        <ion-icon name="logo-instagram"></ion-icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <g fill="#ffffff">
+                                <path d="M427.5 299.7C429.7 300.6 431.7 301.6 433.8 302.5C463 316.6 484.4 337.7 495.6 363.9C511.3 400.4 512.8 459.7 465.3 507.1C429.1 543.3 385 559.6 322.7 560.1L322.4 560.1C252.2 559.6 198.3 536 162 489.9C129.7 448.9 113.1 391.8 112.5 320.3L112.5 319.8C113 248.3 129.6 191.2 161.9 150.2C198.2 104.1 252.2 80.5 322.4 80L322.7 80C393 80.5 447.6 104 485 149.9C503.4 172.6 517 199.9 525.6 231.6L485.2 242.4C478.1 216.6 467.4 194.6 453 177C423.8 141.2 380 122.8 322.5 122.4C265.5 122.9 222.4 141.2 194.3 176.8C168.1 210.1 154.5 258.3 154 320C154.5 381.7 168.1 429.9 194.3 463.3C222.3 498.9 265.5 517.2 322.5 517.7C373.9 517.3 407.9 505.1 436.2 476.8C468.5 444.6 467.9 405 457.6 380.9C451.5 366.7 440.5 354.9 425.7 346C422 372.9 413.9 394.3 401 410.8C383.9 432.6 359.6 444.4 328.3 446.1C304.7 447.4 282 441.7 264.4 430.1C243.6 416.3 231.4 395.3 230.1 370.8C227.6 322.5 265.8 287.8 325.3 284.4C346.4 283.2 366.2 284.1 384.5 287.2C382.1 272.4 377.2 260.6 369.9 252C359.9 240.3 344.3 234.3 323.7 234.2L323 234.2C306.4 234.2 284 238.8 269.7 260.5L235.3 236.9C254.5 207.8 285.6 191.8 323.1 191.8L323.9 191.8C386.5 192.2 423.8 231.3 427.6 299.5L427.4 299.7L427.5 299.7zM271.5 368.5C272.8 393.6 299.9 405.3 326.1 403.8C351.7 402.4 380.7 392.4 385.6 330.6C372.4 327.7 357.8 326.2 342.2 326.2C337.4 326.2 332.6 326.3 327.8 326.6C284.9 329 270.6 349.8 271.6 368.4L271.5 368.5z"/>
+                            </g>
+                        </svg>
+                        <i class="fa-brands fa-tiktok"></i>
+                        <ion-icon name="logo-youtube"></ion-icon>
+                    </div>
+                </div>
+                <div class="icon-container">
+                    <ion-icon name="reorder-three-outline" class="opts-icon"></ion-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Page -->
+    <div id="search-pg">
+        <div class="search-pg-bar">
+            <input type="text" placeholder="Search for news, topics, or authors...">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-icon name="close-outline" class="close-search"></ion-icon>
+        </div>
+    </div>
+
+    <!-- Navigation Panel -->
+    <div id="nav-panel">
+        <div class="nav-panel-content">
+            <ion-icon name="close-outline" class="close-nav"></ion-icon>
+            <a href="/actuality.html">
+                <ion-icon name="calendar-clear-outline"></ion-icon>
+                <span>Actuality</span>
+            </a>
+            <a href="/charts.html">
+                <ion-icon name="bar-chart-outline"></ion-icon>
+                <span>Music Charts</span>
+            </a>
+            <a href="#services-panel">
+                Services
+            </a>
+            <a href="http://localhost:8080/livestream.html">
+                <ion-icon name="radio-outline"></ion-icon>
+                <span>Live Streaming</span>
+            </a>
+            <a href="#">
+                <ion-icon name="search-outline"></ion-icon>
+                <span>Events</span>
+            </a>
+            <a href="#">Join Us</a>
+        </div>
+    </div>
+
+    <!-- Payment Content -->
+    <div id="payment-root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Инициализация Stripe с вашим публикуемым ключом
+        // Замените 'pk_test_your_publishable_key' на ваш настоящий ключ от Stripe
+        const stripe = Stripe('pk_test_your_publishable_key');
+        
+        const PaymentPage = () => {
+            const [cardNumber, setCardNumber] = useState('');
+            const [cardName, setCardName] = useState('');
+            const [expiry, setExpiry] = useState('');
+            const [cvv, setCvv] = useState('');
+            const [email, setEmail] = useState('');
+            const [phone, setPhone] = useState('');
+            const [activeMethod, setActiveMethod] = useState('card');
+            const [isProcessing, setIsProcessing] = useState(false);
+            const [paymentStatus, setPaymentStatus] = useState({ type: '', message: '' });
+            
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setIsProcessing(true);
+                setPaymentStatus({ type: '', message: '' });
+                
+                try {
+                    if (activeMethod === 'card') {
+                        await processCardPayment();
+                    } else if (activeMethod === 'paypal') {
+                        await processPaypalPayment();
+                    } else if (activeMethod === 'moncash') {
+                        await processMonCashPayment();
+                    } else if (activeMethod === 'applepay') {
+                        await processApplePayPayment();
+                    }
+                } catch (error) {
+                    setPaymentStatus({ type: 'error', message: `Payment failed: ${error.message}` });
+                } finally {
+                    setIsProcessing(false);
+                }
+            };
+            
+            const processCardPayment = async () => {
+                // Создаем элемент для ввода карточных данных Stripe
+                const cardElement = elements.create('card');
+                
+                // В реальном приложении здесь будет запрос к вашему бэкенду
+                // для создания платежного интента и обработки платежа
+                
+                // Имитация успешного платежа
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // В реальном приложении здесь будет обработка ответа от Stripe
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Card payment processed successfully! Transaction ID: ch_123456789' 
+                });
+            };
+            
+            const processPaypalPayment = async () => {
+                // В реальном приложении здесь будет интеграция с PayPal API
+                
+                // Имитация перенаправления на PayPal
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Redirecting to PayPal for payment authorization...' 
+                });
+                
+                // В реальном приложении здесь будет window.location.href = paypalApprovalUrl;
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'PayPal payment completed successfully!' 
+                });
+            };
+            
+            const processMonCashPayment = async () => {
+                // Проверяем номер телефона
+                if (!phone || phone.length < 8) {
+                    throw new Error('Please enter a valid phone number for MonCash');
+                }
+                
+                // В реальном приложении здесь будет запрос к MonCash API
+                // для создания транзакции
+                
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Sending payment request to your MonCash account...' 
+                });
+                
+                // Имитация запроса к MonCash API
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Имитация успешного платежа через MonCash
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'MonCash payment completed successfully! Check your phone for confirmation.' 
+                });
+            };
+            
+            const processApplePayPayment = async () => {
+                // Проверяем поддержку Apple Pay
+                if (!window.ApplePaySession) {
+                    throw new Error('Apple Pay is not supported in this browser');
+                }
+                
+                // В реальном приложении здесь будет инициализация Apple Pay
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Initializing Apple Pay...' 
+                });
+                
+                // Имитация процесса Apple Pay
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                setPaymentStatus({ 
+                    type: 'success', 
+                    message: 'Apple Pay payment completed successfully!' 
+                });
+            };
+            
+            const formatCardNumber = (value) => {
+                const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+                const matches = v.match(/\d{4,16}/g);
+                const match = matches && matches[0] || '';
+                const parts = [];
+                
+                for (let i = 0, len = match.length; i < len; i += 4) {
+                    parts.push(match.substring(i, i + 4));
+                }
+                
+                if (parts.length) {
+                    return parts.join(' ');
+                } else {
+                    return value;
+                }
+            };
+            
+            const handleCardNumberChange = (e) => {
+                const formatted = formatCardNumber(e.target.value);
+                setCardNumber(formatted);
+            };
+            
+            // Инициализация элементов Stripe
+            const elements = stripe.elements();
+            
+            return (
+                <div className="payment-container">
+                    <div className="header">
+                        <h1>Secure Online Payments</h1>
+                        <p>Fast and secure payment processing for your purchases</p>
+                    </div>
+                    
+                    <div className="payment-content">
+                        <div className="payment-form">
+                            <h2 className="section-title">Payment Method</h2>
+                            
+                            <div className="payment-methods">
+                                <div 
+                                    className={`payment-method ${activeMethod === 'card' ? 'active' : ''}`}
+                                    onClick={() => setActiveMethod('card')}
+                                >
+                                    <span className="icon">💳</span>
+                                    <span className="name">Credit Card</span>
+                                </div>
+                                <div 
+                                    className={`payment-method ${activeMethod === 'paypal' ? 'active' : ''}`}
+                                    onClick={() => setActiveMethod('paypal')}
+                                >
+                                    <span className="icon">📱</span>
+                                    <span className="name">PayPal</span>
+                                </div>
+                                <div 
+                                    className={`payment-method ${activeMethod === 'moncash' ? 'active' : ''}`}
+                                    onClick={() => setActiveMethod('moncash')}
+                                >
+                                    <span className="icon">💸</span>
+                                    <span className="name"><span className="moncash-logo">Mon Cash</span></span>
+                                </div>
+                                <div 
+                                    className={`payment-method ${activeMethod === 'applepay' ? 'active' : ''}`}
+                                    onClick={() => setActiveMethod('applepay')}
+                                >
+                                    <span className="icon">🍎</span>
+                                    <span className="name">Apple Pay</span>
+                                </div>
+                            </div>
+                            
+                            <form onSubmit={handleSubmit}>
+                                {activeMethod === 'card' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label>Card Number</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="1234 5678 9012 3456"
+                                                value={cardNumber}
+                                                onChange={handleCardNumberChange}
+                                                maxLength="19"
+                                                required
+                                            />
+                                            <div className="card-icons">
+                                                <div className="card-icon">VISA</div>
+                                                <div className="card-icon">MC</div>
+                                                <div className="card-icon">AMEX</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="form-group">
+                                            <label>Cardholder Name</label>
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                placeholder="JOHN DOE"
+                                                value={cardName}
+                                                onChange={(e) => setCardName(e.target.value)}
+                                                required
+                                            />
+                                        </div>
+                                        
+                                        <div className="form-row">
+                                            <div className="form-group">
+                                                <label>Expiry Date</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="MM/YY"
+                                                    value={expiry}
+                                                    onChange={(e) => setExpiry(e.target.value)}
+                                                    maxLength="5"
+                                                    required
+                                                />
+                                            </div>
+                                            
+                                            <div className="form-group">
+                                                <label>CVV Code</label>
+                                                <input
+                                                    type="text"
+                                                    className="form-control"
+                                                    placeholder="123"
+                                                    value={cvv}
+                                                    onChange={(e) => setCvv(e.target.value)}
+                                                    maxLength="3"
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                                
+                                {activeMethod === 'paypal' && (
+                                    <div className="form-group">
+                                        <p>After clicking "Pay Now", you will be redirected to PayPal to complete your payment securely.</p>
+                                    </div>
+                                )}
+                                
+                                {activeMethod === 'moncash' && (
+                                    <div className="form-group">
+                                        <label>Phone Number</label>
+                                        <input
+                                            type="tel"
+                                            className="form-control"
+                                            placeholder="Your Mon Cash phone number"
+                                            value={phone}
+                                            onChange={(e) => setPhone(e.target.value)}
+                                            required
+                                        />
+                                        <p style={{marginTop: '10px', fontSize: '14px', color: '#666'}}>
+                                            Enter your Mon Cash registered phone number. You will receive a confirmation prompt on your device.
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {activeMethod === 'applepay' && (
+                                    <div className="form-group">
+                                        <p>After clicking "Pay Now", the Apple Pay window will open to complete your payment.</p>
+                                    </div>
+                                )}
+                                
+                                <div className="form-group">
+                                    <label>Email for receipt</label>
+                                    <input
+                                        type="email"
+                                        className="form-control"
+                                        placeholder="email@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                
+                                <button type="submit" className="btn" disabled={isProcessing}>
+                                    {isProcessing ? <span className="loading"></span> : 'Pay Now'}
+                                </button>
+                                
+                                {paymentStatus.message && (
+                                    <div className={`payment-status ${paymentStatus.type}`}>
+                                        {paymentStatus.message}
+                                    </div>
+                                )}
+                                
+                                <div className="secure-notice">
+                                    🔒 Your data is securely protected
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div className="payment-summary">
+                            <h2 className="section-title">Order Summary</h2>
+                            
+                            <div className="summary-item">
+                                <span>Products</span>
+                                <span>$98.00</span>
+                            </div>
+                            
+                            <div className="summary-item">
+                                <span>Shipping</span>
+                                <span>$12.00</span>
+                            </div>
+                            
+                            <div className="summary-item">
+                                <span>Tax</span>
+                                <span>$9.80</span>
+                            </div>
+                            
+                            <div className="summary-total">
+                                <span>Total</span>
+                                <span>$119.80</span>
+                            </div>
+                            
+                            <div className="info-box">
+                                <h3>Money-Back Guarantee</h3>
+                                <p>If you're not satisfied with your purchase, we offer a 30-day money-back guarantee with no questions asked.</p>
+                            </div>
+                            
+                            <div className="info-box">
+                                <h3>Customer Support</h3>
+                                <p>Phone: +1 (800) 123-4567</p>
+                                <p>Email: support@example.com</p>
+                                <p>Hours: Mon-Fri, 9am-6pm EST</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        const App = () => {
+            return <PaymentPage />;
+        };
+        
+        const root = ReactDOM.createRoot(document.getElementById('payment-root'));
+        root.render(<App />);
+    </script>
+
+    <script>
+        // Top Bar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const iconContainer = document.querySelector('.icon-container');
+            const searchIcon = document.querySelector('.search-icon');
+            const searchPage = document.getElementById('search-pg');
+            const closeSearch = document.querySelector('.close-search');
+            const navPanel = document.getElementById('nav-panel');
+            const closeNav = document.querySelector('.close-nav');
+            
+            // Search functionality
+            if (searchIcon) {
+                searchIcon.addEventListener('click', function() {
+                    searchPage.style.display = 'flex';
+                });
+            }
+            
+            if (closeSearch) {
+                closeSearch.addEventListener('click', function() {
+                    searchPage.style.display = 'none';
+                });
+            }
+            
+            // Navigation panel functionality
+            if (iconContainer) {
+                iconContainer.querySelector('.opts-icon').addEventListener('click', function() {
+                    navPanel.classList.add('open');
+                });
+            }
+            
+            if (closeNav) {
+                closeNav.addEventListener('click', function() {
+                    navPanel.classList.remove('open');
+                });
+            }
+            
+            // Close search page when clicking outside
+            searchPage.addEventListener('click', function(e) {
+                if (e.target === searchPage) {
+                    searchPage.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Gallery - News Website</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js" nomodule></script>
+    <style>
+        /* Top Bar Styles */
+        .flxDisp {
+            display: flex;
+        }
+        
+        .full-h {
+            height: 100%;
+        }
+        
+        .no-margin {
+            margin: 0 !important;
+        }
+        
+        #top-bar {
+            background-color: #1d0962;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .top-bar-container {
+            background-image: url("media/images/top_bar_bg.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            width: 100%;
+            height: 100px;
+            display: flex;
+            flex-direction: row;
+            padding: 8px 0;
+        }
+        
+        #logo {
+            width: 40px;
+            height: 40px;
+            margin: 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        #top-bar-content {
+            width: 90%;
+            padding: 5px 12px;
+            flex-direction: row;
+            justify-content: space-evenly;
+            gap: 4px;
+            margin-top: 8px;
+            height: calc(100% - 8px);
+        }
+        
+        .container.links.search {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            height: 100%;
+            width: calc(100% - 60px);
+        }
+        
+        .social {
+            flex-direction: row;
+            height: fit-content;
+            gap: 12px;
+        }
+        
+        .search-bar {
+            flex-direction: row;
+            align-items: center;
+            border-radius: 4px;
+            gap: 8px;
+            padding: 0 4px;
+            background-color: white;
+            width: calc(100% - 32px);
+            height: 32px;
+            cursor: pointer;
+        }
+        
+        .search-bar .input {
+            caret-color: black;
+            height: calc(100% - 8px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .search-bar .input span {
+            width: 100%;
+            padding: 0 4px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-container ion-icon {
+            font-size: 36px;
+            transition: transform 0.3ms ease;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .icon-container ion-icon:active {
+            transform: scale(1.1);
+        }
+        
+        .social ion-icon,
+        .social svg,
+        .social i {
+            color: white;
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        
+        /* Search Page Styles */
+        #search-pg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 80px;
+        }
+        
+        .search-pg-bar {
+            width: 90%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .search-pg-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 8px;
+        }
+        
+        .search-pg-bar ion-icon {
+            font-size: 20px;
+            color: #555;
+            cursor: pointer;
+        }
+        
+        /* Navigation Panel Styles */
+        #nav-panel {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: white;
+            z-index: 1001;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        #nav-panel.open {
+            right: 0;
+        }
+        
+        .nav-panel-content {
+            padding: 70px 16px 16px;
+        }
+        
+        .nav-panel-content a {
+            display: block;
+            padding: 12px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-panel-content a:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .close-nav {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        /* Desktop Styles for Top Bar */
+        @media only screen and (min-width: 768px) {
+            .top-bar-container {
+                height: 70px;
+                padding: 10px 0;
+            }
+            
+            #logo {
+                width: 50px;
+                height: 50px;
+                margin: 0 15px;
+            }
+            
+            .search-bar {
+                height: 35px;
+            }
+            
+            .search-bar .input span {
+                font-size: 14px;
+            }
+            
+            .icon-container ion-icon {
+                font-size: 48px;
+            }
+            
+            .social ion-icon,
+            .social svg,
+            .social i {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        /* Media Gallery Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e1e4e8;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        .back-to-news {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .back-to-news i {
+            margin-right: 8px;
+        }
+        
+        .back-to-news:hover {
+            background-color: #2980b9;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            font-size: 18px;
+        }
+        
+        .media-container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .media-container {
+                flex-direction: column;
+            }
+        }
+        
+        .music-section, .video-section {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 25px;
+            transition: transform 0.3s;
+        }
+        
+        .music-section:hover, .video-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .section-title {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e1e4e8;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        .music-item, .video-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #f8fafc;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        
+        .music-item:hover, .video-item:hover {
+            background: #e8f4fc;
+        }
+        
+        .music-thumbnail {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 15px;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .video-thumbnail {
+            width: 100px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-right: 15px;
+            background: #2c3e50;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .video-thumbnail:hover .play-overlay {
+            opacity: 1;
+        }
+        
+        .music-info, .video-info {
+            flex: 1;
+        }
+        
+        .music-title, .video-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .music-artist, .video-duration {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .music-duration, .video-duration {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-left: 10px;
+        }
+        
+        .player-controls {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .play-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: #e1e4e8;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: #3498db;
+            width: 30%;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+            border-top: 2px solid #e1e4e8;
+            margin-top: 40px;
+        }
+        
+        .now-playing {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .now-playing-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .now-playing-text {
+            margin-left: 15px;
+        }
+        
+        .now-playing-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .now-playing-artist {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Media controls */
+        .media-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .action-btn {
+            padding: 5px 10px;
+            background: #e1e4e8;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .action-btn i {
+            margin-right: 5px;
+        }
+        
+        .action-btn:hover {
+            background: #d1d9e0;
+        }
+        
+        .download-btn {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .download-btn:hover {
+            background: #219653;
+        }
+        
+        /* Video player modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 800px;
+            width: 90%;
+        }
+        
+        .close-modal {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        video {
+            width: 100%;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        
+        /* Audio player */
+        audio {
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div id="top-bar" class="no-margin flxDisp">
+        <div class="top-bar-container">
+            <div id="logo">
+                <img alt="logo" type="image/jpg" width="50" height="50" src="media/images/Konektem.png"/>
+            </div>
+            <div id="top-bar-content" class="flxDisp full-h">
+                <div class="container links search flxDisp">
+                    <div class="search-bar flxDisp">
+                        <div class="input search-inp no-outln no-bdr full-w">
+                            <span>Search</span>
+                        </div>
+                        <ion-icon name="search-outline" class="fnt24 search-icon"></ion-icon>
+                    </div>
+                    <div class="social evenFlx">
+                        <ion-icon name="logo-facebook"></ion-icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
+                            <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal">
+                                <g transform="scale(8.53333,8.53333)">
+                                    <path d="M26.37,26l-8.795,-12.822l0.015,0.012l7.93,-9.19h-2.65l-6.46,7.48l-5.13,-7.48h-6.95l8.211,11.971l-0.001,-0.001l-8.66,10.03h2.65l7.182,-8.322l5.708,8.322zM10.23,6l12.34,18h-2.1l-12.35,-18z"></path>
+                                </g>
+                            </g>
+                        </svg>
+                        <ion-icon name="logo-instagram"></ion-icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <g fill="#ffffff">
+                                <path d="M427.5 299.7C429.7 300.6 431.7 301.6 433.8 302.5C463 316.6 484.4 337.7 495.6 363.9C511.3 400.4 512.8 459.7 465.3 507.1C429.1 543.3 385 559.6 322.7 560.1L322.4 560.1C252.2 559.6 198.3 536 162 489.9C129.7 448.9 113.1 391.8 112.5 320.3L112.5 319.8C113 248.3 129.6 191.2 161.9 150.2C198.2 104.1 252.2 80.5 322.4 80L322.7 80C393 80.5 447.6 104 485 149.9C503.4 172.6 517 199.9 525.6 231.6L485.2 242.4C478.1 216.6 467.4 194.6 453 177C423.8 141.2 380 122.8 322.5 122.4C265.5 122.9 222.4 141.2 194.3 176.8C168.1 210.1 154.5 258.3 154 320C154.5 381.7 168.1 429.9 194.3 463.3C222.3 498.9 265.5 517.2 322.5 517.7C373.9 517.3 407.9 505.1 436.2 476.8C468.5 444.6 467.9 405 457.6 380.9C451.5 366.7 440.5 354.9 425.7 346C422 372.9 413.9 394.3 401 410.8C383.9 432.6 359.6 444.4 328.3 446.1C304.7 447.4 282 441.7 264.4 430.1C243.6 416.3 231.4 395.3 230.1 370.8C227.6 322.5 265.8 287.8 325.3 284.4C346.4 283.2 366.2 284.1 384.5 287.2C382.1 272.4 377.2 260.6 369.9 252C359.9 240.3 344.3 234.3 323.7 234.2L323 234.2C306.4 234.2 284 238.8 269.7 260.5L235.3 236.9C254.5 207.8 285.6 191.8 323.1 191.8L323.9 191.8C386.5 192.2 423.8 231.3 427.6 299.5L427.4 299.7L427.5 299.7zM271.5 368.5C272.8 393.6 299.9 405.3 326.1 403.8C351.7 402.4 380.7 392.4 385.6 330.6C372.4 327.7 357.8 326.2 342.2 326.2C337.4 326.2 332.6 326.3 327.8 326.6C284.9 329 270.6 349.8 271.6 368.4L271.5 368.5z"/>
+                            </g>
+                        </svg>
+                        <i class="fa-brands fa-tiktok"></i>
+                        <ion-icon name="logo-youtube"></ion-icon>
+                    </div>
+                </div>
+                <div class="icon-container">
+                    <ion-icon name="reorder-three-outline" class="opts-icon"></ion-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Page -->
+    <div id="search-pg">
+        <div class="search-pg-bar">
+            <input type="text" placeholder="Search for music, videos, or artists...">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-icon name="close-outline" class="close-search"></ion-icon>
+        </div>
+    </div>
+
+    <!-- Navigation Panel -->
+    <div id="nav-panel">
+        <div class="nav-panel-content">
+            <ion-icon name="close-outline" class="close-nav"></ion-icon>
+            <a href="/actuality.html">
+                <ion-icon name="calendar-clear-outline"></ion-icon>
+                <span>Actuality</span>
+            </a>
+            <a href="/charts.html">
+                <ion-icon name="bar-chart-outline"></ion-icon>
+                <span>Music Charts</span>
+            </a>
+            <a href="#services-panel">
+                Services
+            </a>
+            <a href="http://localhost:8080/livestream.html">
+                <ion-icon name="radio-outline"></ion-icon>
+                <span>Live Streaming</span>
+            </a>
+            <a href="#">
+                <ion-icon name="search-outline"></ion-icon>
+                <span>Events</span>
+            </a>
+            <a href="#">Join Us</a>
+        </div>
+    </div>
+
+    <!-- Media Gallery Content -->
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-play-circle"></i>
+                <span>MediaNews</span>
+            </div>
+            <a href="index.html" class="back-to-news">
+                <i class="fas fa-arrow-left"></i>
+                Back to News
+            </a>
+        </header>
+        
+        <h1>Music & Video Gallery</h1>
+        <p class="subtitle">Enjoy our curated selection of music tracks and videos</p>
+        
+        <div class="media-container">
+            <div class="music-section">
+                <h2 class="section-title">
+                    <i class="fas fa-music"></i>
+                    Popular Tracks
+                </h2>
+                
+                <div class="music-item" data-src="https://assets.codepen.io/217233/kwabs-lost-in-the-zone.mp3" data-title="Lost in the Zone" data-artist="Kwabs">
+                    <div class="music-thumbnail">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="music-info">
+                        <div class="music-title">Lost in the Zone</div>
+                        <div class="music-artist">Kwabs</div>
+                        <div class="player-controls">
+                            <div class="play-btn">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress"></div>
+                            </div>
+                            <div class="music-duration">3:45</div>
+                        </div>
+                        <div class="media-actions">
+                            <button class="action-btn download-btn" onclick="downloadMedia('https://assets.codepen.io/217233/kwabs-lost-in-the-zone.mp3', 'Kwabs-LostInTheZone.mp3')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="music-item" data-src="https://assets.codepen.io/217233/ketsa-guidance.mp3" data-title="Guidance" data-artist="Ketsa">
+                    <div class="music-thumbnail">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="music-info">
+                        <div class="music-title">Guidance</div>
+                        <div class="music-artist">Ketsa</div>
+                        <div class="player-controls">
+                            <div class="play-btn">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 65%;"></div>
+                            </div>
+                            <div class="music-duration">4:20</div>
+                        </div>
+                        <div class="media-actions">
+                            <button class="action-btn download-btn" onclick="downloadMedia('https://assets.codepen.io/217233/ketsa-guidance.mp3', 'Ketsa-Guidance.mp3')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="music-item" data-src="https://assets.codepen.io/217233/sample-track-3.mp3" data-title="Mountain Echo" data-artist="Nature Sounds">
+                    <div class="music-thumbnail">
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div class="music-info">
+                        <div class="music-title">Mountain Echo</div>
+                        <div class="music-artist">Nature Sounds</div>
+                        <div class="player-controls">
+                            <div class="play-btn">
+                                <i class="fas fa-play"></i>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 15%;"></div>
+                            </div>
+                            <div class="music-duration">5:10</div>
+                        </div>
+                        <div class="media-actions">
+                            <button class="action-btn download-btn" onclick="downloadMedia('https://assets.codepen.io/217233/sample-track-3.mp3', 'NatureSounds-MountainEcho.mp3')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="video-section">
+                <h2 class="section-title">
+                    <i class="fas fa-video"></i>
+                    Trending Videos
+                </h2>
+                
+                <div class="video-item" data-src="https://assets.codepen.io/217233/sample-video-1.mp4" data-title="Mountain Timelapse">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-film"></i>
+                        <div class="play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">Mountain Timelapse</div>
+                        <div class="video-duration">0:45</div>
+                        <div class="media-actions">
+                            <button class="action-btn download-btn" onclick="downloadMedia('https://assets.codepen.io/217233/sample-video-1.mp4', 'MountainTimelapse.mp4')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-item" data-src="https://assets.codepen.io/217233/sample-video-2.mp4" data-title="Ocean Waves">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-film"></i>
+                        <div class="play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">Ocean Waves</div>
+                        <div class="video-duration">0:30</div>
+                        <div class="media-actions">
+                            <button class="action-btn download-btn" onclick="downloadMedia('https://assets.codepen.io/217233/sample-video-2.mp4', 'OceanWaves.mp4')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="video-item" data-src="https://assets.codepen.io/217233/sample-video-3.mp4" data-title="City Life">
+                    <div class="video-thumbnail">
+                        <i class="fas fa-film"></i>
+                        <div class="play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">City Life</div>
+                        <div class="video-duration">1:05</div>
+                        <div class="media-actions">
+                            <button class="action-btn download-btn" onclick="downloadMedia('https://assets.codepen.io/217233/sample-video-3.mp4', 'CityLife.mp4')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="now-playing">
+            <div class="now-playing-info">
+                <div class="music-thumbnail">
+                    <i class="fas fa-music"></i>
+                </div>
+                <div class="now-playing-text">
+                    <div class="now-playing-title">Select a track to play</div>
+                    <div class="now-playing-artist">MediaHub Player</div>
+                </div>
+            </div>
+            <div class="controls">
+                <div class="control-btn">
+                    <i class="fas fa-step-backward"></i>
+                </div>
+                <div class="control-btn" id="main-play">
+                    <i class="fas fa-play"></i>
+                </div>
+                <div class="control-btn">
+                    <i class="fas fa-step-forward"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Audio Player -->
+        <audio id="audio-player" controls style="display: none;"></audio>
+        
+        <!-- Video Modal -->
+        <div class="modal" id="video-modal">
+            <div class="modal-content">
+                <span class="close-modal" id="close-modal">&times;</span>
+                <h3 id="modal-title">Video Player</h3>
+                <video id="modal-video" controls>
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+        
+        <footer>
+            <p>&copy; 2025 News Website Media Gallery. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Top Bar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const iconContainer = document.querySelector('.icon-container');
+            const searchIcon = document.querySelector('.search-icon');
+            const searchPage = document.getElementById('search-pg');
+            const closeSearch = document.querySelector('.close-search');
+            const navPanel = document.getElementById('nav-panel');
+            const closeNav = document.querySelector('.close-nav');
+            
+            // Search functionality
+            if (searchIcon) {
+                searchIcon.addEventListener('click', function() {
+                    searchPage.style.display = 'flex';
+                });
+            }
+            
+            if (closeSearch) {
+                closeSearch.addEventListener('click', function() {
+                    searchPage.style.display = 'none';
+                });
+            }
+            
+            // Navigation panel functionality
+            if (iconContainer) {
+                iconContainer.querySelector('.opts-icon').addEventListener('click', function() {
+                    navPanel.classList.add('open');
+                });
+            }
+            
+            if (closeNav) {
+                closeNav.addEventListener('click', function() {
+                    navPanel.classList.remove('open');
+                });
+            }
+            
+            // Close search page when clicking outside
+            searchPage.addEventListener('click', function(e) {
+                if (e.target === searchPage) {
+                    searchPage.style.display = 'none';
+                }
+            });
+
+            // Social media functionality
+            const socialIcons = document.querySelectorAll('.social ion-icon, .social svg, .social i');
+            socialIcons.forEach(icon => {
+                icon.addEventListener('click', function() {
+                    const platform = this.getAttribute('name') || 
+                                   (this.classList.contains('fa-tiktok') ? 'tiktok' : 
+                                    this.tagName === 'svg' ? 'twitter' : 'linkedin');
+                    openSocialMedia(platform);
+                });
+            });
+
+            function openSocialMedia(platform) {
+                const urls = {
+                    'logo-facebook': 'https://facebook.com',
+                    'logo-instagram': 'https://instagram.com', 
+                    'logo-youtube': 'https://youtube.com',
+                    'tiktok': 'https://tiktok.com',
+                    'twitter': 'https://twitter.com',
+                    'linkedin': 'https://linkedin.com'
+                };
+                
+                if (urls[platform]) {
+                    window.open(urls[platform], '_blank');
+                }
+            }
+        });
+
+        // Media Gallery functionality
+        // DOM elements
+        const audioPlayer = document.getElementById('audio-player');
+        const videoModal = document.getElementById('video-modal');
+        const modalVideo = document.getElementById('modal-video');
+        const modalTitle = document.getElementById('modal-title');
+        const closeModal = document.getElementById('close-modal');
+        const mainPlayButton = document.getElementById('main-play');
+        
+        // State variables
+        let currentlyPlaying = null;
+        let currentAudio = null;
+        
+        // Initialize media players
+        function initMediaPlayers() {
+            // Music item click handling
+            const musicItems = document.querySelectorAll('.music-item');
+            musicItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Don't trigger if download button was clicked
+                    if (e.target.closest('.download-btn')) return;
+                    
+                    const src = this.getAttribute('data-src');
+                    const title = this.getAttribute('data-title');
+                    const artist = this.getAttribute('data-artist');
+                    
+                    playAudio(src, title, artist, this);
+                });
+            });
+            
+            // Video item click handling
+            const videoItems = document.querySelectorAll('.video-item');
+            videoItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    // Don't trigger if download button was clicked
+                    if (e.target.closest('.download-btn')) return;
+                    
+                    const src = this.getAttribute('data-src');
+                    const title = this.getAttribute('data-title');
+                    
+                    playVideo(src, title);
+                });
+            });
+            
+            // Close modal event
+            closeModal.addEventListener('click', function() {
+                videoModal.style.display = 'none';
+                modalVideo.pause();
+            });
+            
+            // Main play button event
+            mainPlayButton.addEventListener('click', function() {
+                if (currentAudio) {
+                    if (audioPlayer.paused) {
+                        audioPlayer.play();
+                        this.querySelector('i').classList.remove('fa-play');
+                        this.querySelector('i').classList.add('fa-pause');
+                        if (currentlyPlaying) {
+                            currentlyPlaying.querySelector('.play-btn i').classList.remove('fa-play');
+                            currentlyPlaying.querySelector('.play-btn i').classList.add('fa-pause');
+                        }
+                    } else {
+                        audioPlayer.pause();
+                        this.querySelector('i').classList.remove('fa-pause');
+                        this.querySelector('i').classList.add('fa-play');
+                        if (currentlyPlaying) {
+                            currentlyPlaying.querySelector('.play-btn i').classList.remove('fa-pause');
+                            currentlyPlaying.querySelector('.play-btn i').classList.add('fa-play');
+                        }
+                    }
+                }
+            });
+            
+            // Audio player events
+            audioPlayer.addEventListener('play', function() {
+                if (currentlyPlaying) {
+                    currentlyPlaying.querySelector('.play-btn i').classList.remove('fa-play');
+                    currentlyPlaying.querySelector('.play-btn i').classList.add('fa-pause');
+                }
+                mainPlayButton.querySelector('i').classList.remove('fa-play');
+                mainPlayButton.querySelector('i').classList.add('fa-pause');
+            });
+            
+            audioPlayer.addEventListener('pause', function() {
+                if (currentlyPlaying) {
+                    currentlyPlaying.querySelector('.play-btn i').classList.remove('fa-pause');
+                    currentlyPlaying.querySelector('.play-btn i').classList.add('fa-play');
+                }
+                mainPlayButton.querySelector('i').classList.remove('fa-pause');
+                mainPlayButton.querySelector('i').classList.add('fa-play');
+            });
+            
+            audioPlayer.addEventListener('timeupdate', function() {
+                if (currentlyPlaying) {
+                    const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                    currentlyPlaying.querySelector('.progress').style.width = `${progress}%`;
+                }
+            });
+        }
+        
+        // Play audio function
+        function playAudio(src, title, artist, element) {
+            // If clicking the same track that's currently playing
+            if (currentlyPlaying === element && !audioPlayer.paused) {
+                audioPlayer.pause();
+                return;
+            }
+            
+            // Reset previous track UI
+            if (currentlyPlaying && currentlyPlaying !== element) {
+                currentlyPlaying.querySelector('.play-btn i').classList.remove('fa-pause');
+                currentlyPlaying.querySelector('.play-btn i').classList.add('fa-play');
+            }
+            
+            // Update current track
+            currentlyPlaying = element;
+            currentAudio = src;
+            
+            // Set audio source and play
+            audioPlayer.src = src;
+            audioPlayer.play();
+            
+            // Update UI
+            element.querySelector('.play-btn i').classList.remove('fa-play');
+            element.querySelector('.play-btn i').classList.add('fa-pause');
+            
+            // Update now playing section
+            document.querySelector('.now-playing-title').textContent = title;
+            document.querySelector('.now-playing-artist').textContent = artist;
+            
+            // Show the audio player (though it's hidden for UI, we keep it for functionality)
+            audioPlayer.style.display = 'none'; // Still hidden but functional
+        }
+        
+        // Play video function
+        function playVideo(src, title) {
+            modalVideo.src = src;
+            modalTitle.textContent = title;
+            videoModal.style.display = 'flex';
+            modalVideo.play();
+        }
+        
+        // Download media function
+        function downloadMedia(url, filename) {
+            // Create a temporary anchor element
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            // In a real application, you might want to track downloads here
+            console.log(`Downloading: ${filename}`);
+        }
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initMediaPlayers);
+    </script>
+</body>
+</html>
