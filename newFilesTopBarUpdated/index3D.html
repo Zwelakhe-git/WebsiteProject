@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="black"/>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Konektem News Portal - Actuality</title>
+    <link rel="shortcut icon" type="image/png" href="/media/images/logo_shortcut_icon.png"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js" nomodule></script>
+    <style>
+        /* Global Styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body, #root {
+            width: 100%;
+            font-family: Roboto, Arial, sans-serif;
+            margin: 0;
+            background: whitesmoke;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        .flxDisp {
+            display: flex;
+        }
+
+        .full-h {
+            height: 100%;
+        }
+
+        .no-margin {
+            margin: 0 !important;
+        }
+
+        /* Navigation Panel Styles */
+        #nav-panel {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: white;
+            z-index: 1001;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        #nav-panel.open {
+            right: 0;
+        }
+
+        .nav-panel-content {
+            padding: 70px 15px 15px;
+        }
+
+        .nav-panel-content a {
+            display: block;
+            padding: 12px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            font-size: 16px;
+        }
+
+        .nav-panel-content a:hover {
+            background-color: #f5f5f5;
+        }
+
+        .close-nav {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 22px;
+            cursor: pointer;
+        }
+
+        /* Top Bar Styles */
+        #top-bar{
+            top: 0;
+            left : 0;
+            z-index : 101;
+            width : 100%;
+            flex-direction : row;
+            justify-content : center;
+            align-items: center;
+        }
+        .top-bar-container{
+            box-sizing: border-box;
+            width : 100%;
+            display : flex;
+            flex-direction : row;
+            justify-content : center;
+            align-items: center;
+            background-image : url("/media/images/top_bar_bg.jpg");
+            background-size : cover;
+            background-repeat : no-repeat;
+            background-position: center;
+        }
+
+        #top-bar-content{
+            width: calc(100% - 100px);
+            flex-direction : row;
+            justify-content : space-evenly;
+            gap : 5px;
+            margin-top : 10px;
+            height: calc(100% - 10px);
+        }
+        .container.links.search{
+            display : flex;
+            flex-direction : column;
+            align-items : center;
+            gap : 8px;
+            margin: 5px 0px 0px 0px;
+            height: 100%;
+            width: calc(100% - 48px - 30px);
+            padding: 0px;
+        }
+        .social{
+            flex-direction : row;
+            height : fit-content;
+            gap : 3px;
+        }
+                .social ion-icon,
+        .social svg,
+        .social i{
+            color: white;
+            width: 16px;
+            height: 16px;
+        }
+        .search-bar{
+            flex-direction: row;
+            align-items: center;
+            border-radius: 5px;
+            gap: 10px;
+            padding: 0px 5px;
+            background-color: white;
+            width: calc(100%);
+        }
+
+        @media only screen and (max-width: 768px){
+            .search-bar .input{
+                height: 35px;
+            }
+            .top-bar-container{
+                height : 90px;
+                padding: 10px 0;
+            }
+        }
+        .search-bar .input{
+            caret-color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .icon-container ion-icon{
+            font-size : 48px;
+            transition : transform 0.3ms ease;
+            color: white;
+        }
+
+        .icon-container ion-icon:active{
+            transform : scale(1.1);
+        }
+
+        #search-pg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 80px;
+        }
+
+        .search-pg-bar {
+            width: 90%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-pg-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 8px;
+        }
+
+        .search-pg-bar ion-icon {
+            font-size: 20px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        /* Desktop Styles */
+        @media only screen and (min-width: 768px) {
+            .top-bar-container {
+                width: 70%;
+                height: 100%;
+                margin: auto;
+                display: flex;
+                flex-direction: row;
+                padding: 10px 15px;
+            }
+
+            #top-bar {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                padding: 0 10px;
+                margin-bottom: 30px;
+            }
+
+            #logo {
+                width: 50px;
+                height: 50px;
+            }
+
+            #logo img {
+                width: 100% !important;
+                height: 100% !important;
+            }
+
+            #top-bar-content {
+                width: 90%;
+                padding: 5px 15px;
+            }
+
+            .search-bar {
+                display: flex;
+                flex-direction: row;
+                width: 80%;
+                background-color: white;
+                justify-content: space-between;
+                padding: 5px;
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* News Portal Styles */
+        .section-nav {
+            background-color: white;
+            padding: 12px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .section-nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        .section-nav ul li {
+            margin: 4px 8px;
+        }
+
+        .section-nav ul li a {
+            text-decoration: none;
+            color: #2b6cb0;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .section-nav ul li a:hover,
+        .section-nav ul li a.active {
+            background-color: #2b6cb0;
+            color: white;
+        }
+
+        .news-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eaeaea;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #1a4b8c;
+        }
+
+        .view-all {
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .news-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .news-card {
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 8px #0000001a;
+        }
+
+        .news-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .news-img {
+            height: 160px;
+            overflow: hidden;
+        }
+
+        .news-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .news-card:hover .news-img img {
+            transform: scale(1.05);
+        }
+
+        .news-content {
+            padding: 15px;
+            position: relative;
+        }
+
+        .news-date {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .news-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .news-excerpt {
+            color: #666;
+            margin-bottom: 12px;
+            max-height: 50px;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .news-excerpt.expanded {
+            max-height: 400px;
+        }
+
+        .read-more {
+            display: inline-block;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .read-more:hover {
+            text-decoration: underline;
+        }
+
+        .full-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+            color: #444;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .full-content.expanded {
+            max-height: 800px;
+        }
+
+        .breaking-news {
+            background-color: #ec0505bb;
+            color: white;
+            padding: 12px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+        }
+
+        .breaking-news h2 {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        .breaking-news h2 i {
+            margin-right: 8px;
+        }
+
+        .breaking-news p {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        footer {
+            background-color: #355b94;
+            color: white;
+            padding: 30px 0;
+            margin-top: 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 8px;
+        }
+
+        .footer-section ul li a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 14px;
+        }
+
+        .footer-section ul li a:hover {
+            color: white;
+        }
+
+        .footer-section p {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .social-icons a {
+            color: white;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #2b6cb0;
+            font-size: 12px;
+        }
+
+    /* Desktop Layout */
+    @media (min-width: 768px) {
+        .container {
+            padding: 0 20px;
+        }
+
+        #logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 15px;
+        }
+
+        .icon-container ion-icon {
+            font-size: 42px;
+        }
+
+        .social ion-icon,
+        .social svg,
+        .social i {
+            width: 18px;
+            height: 18px;
+        }
+
+        .section-nav {
+            padding: 15px 0;
+        }
+
+        .section-nav ul li a {
+            padding: 8px 15px;
+            font-size: 16px;
+        }
+
+        .news-section {
+            padding: 20px;
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+        }
+
+        .view-all {
+            font-size: 16px;
+        }
+
+        .news-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .news-img {
+            height: 180px;
+        }
+
+        .news-content {
+            padding: 20px;
+        }
+
+        .news-date {
+            font-size: 14px;
+        }
+
+        .news-title {
+            font-size: 18px;
+        }
+
+        .news-excerpt {
+            font-size: 15px;
+        }
+
+        .read-more {
+            font-size: 15px;
+        }
+
+        .breaking-news {
+            padding: 15px;
+        }
+
+        .breaking-news h2 {
+            font-size: 18px;
+        }
+
+        .breaking-news p {
+            font-size: 16px;
+        }
+
+        footer {
+            padding: 40px 0;
+        }
+
+        .footer-content {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-section h3 {
+            font-size: 18px;
+        }
+
+        .footer-section p, 
+        .footer-section ul li a {
+            font-size: 15px;
+        }
+
+        .copyright {
+            font-size: 14px;
+        }
+    }
+
+    /* Large Desktop */
+    @media (min-width: 1024px) {
+        .news-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+        </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div id="top-bar" class="no-margin flxDisp">
+        <div class="top-bar-container">
+            <div id="logo">
+                <img alt="logo" type="image/jpg" width="50" height="50" src="media/images/Konektem.png"/>
+            </div>
+            <div id="top-bar-content" class="flxDisp full-h">
+                <div class="container links search flxDisp">
+                    <div class="search-bar flxDisp">
+                        <div class="input search-inp no-outln no-bdr full-w">
+                            <span>Search</span>
+                        </div>
+                        <ion-icon name="search-outline" class="fnt24 search-icon"></ion-icon>
+                    </div>
+                    <div class="social evenFlx">
+                        <ion-icon name="logo-facebook"></ion-icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="100" height="100" viewBox="0,0,256,256">
+                            <g fill="#ffffff" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal">
+                                <g transform="scale(8.53333,8.53333)">
+                                    <path d="M26.37,26l-8.795,-12.822l0.015,0.012l7.93,-9.19h-2.65l-6.46,7.48l-5.13,-7.48h-6.95l8.211,11.971l-0.001,-0.001l-8.66,10.03h2.65l7.182,-8.322l5.708,8.322zM10.23,6l12.34,18h-2.1l-12.35,-18z"></path>
+                                </g>
+                            </g>
+                        </svg>
+                        <ion-icon name="logo-instagram"></ion-icon>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+                            <g fill="#ffffff">
+                                <path d="M427.5 299.7C429.7 300.6 431.7 301.6 433.8 302.5C463 316.6 484.4 337.7 495.6 363.9C511.3 400.4 512.8 459.7 465.3 507.1C429.1 543.3 385 559.6 322.7 560.1L322.4 560.1C252.2 559.6 198.3 536 162 489.9C129.7 448.9 113.1 391.8 112.5 320.3L112.5 319.8C113 248.3 129.6 191.2 161.9 150.2C198.2 104.1 252.2 80.5 322.4 80L322.7 80C393 80.5 447.6 104 485 149.9C503.4 172.6 517 199.9 525.6 231.6L485.2 242.4C478.1 216.6 467.4 194.6 453 177C423.8 141.2 380 122.8 322.5 122.4C265.5 122.9 222.4 141.2 194.3 176.8C168.1 210.1 154.5 258.3 154 320C154.5 381.7 168.1 429.9 194.3 463.3C222.3 498.9 265.5 517.2 322.5 517.7C373.9 517.3 407.9 505.1 436.2 476.8C468.5 444.6 467.9 405 457.6 380.9C451.5 366.7 440.5 354.9 425.7 346C422 372.9 413.9 394.3 401 410.8C383.9 432.6 359.6 444.4 328.3 446.1C304.7 447.4 282 441.7 264.4 430.1C243.6 416.3 231.4 395.3 230.1 370.8C227.6 322.5 265.8 287.8 325.3 284.4C346.4 283.2 366.2 284.1 384.5 287.2C382.1 272.4 377.2 260.6 369.9 252C359.9 240.3 344.3 234.3 323.7 234.2L323 234.2C306.4 234.2 284 238.8 269.7 260.5L235.3 236.9C254.5 207.8 285.6 191.8 323.1 191.8L323.9 191.8C386.5 192.2 423.8 231.3 427.6 299.5L427.4 299.7L427.5 299.7zM271.5 368.5C272.8 393.6 299.9 405.3 326.1 403.8C351.7 402.4 380.7 392.4 385.6 330.6C372.4 327.7 357.8 326.2 342.2 326.2C337.4 326.2 332.6 326.3 327.8 326.6C284.9 329 270.6 349.8 271.6 368.4L271.5 368.5z"/>
+                            </g>
+                        </svg>
+                        <i class="fa-brands fa-tiktok"></i>
+                        <ion-icon name="logo-youtube"></ion-icon>
+                    </div>
+                </div>
+                <div class="icon-container">
+                    <ion-icon name="reorder-three-outline" class="opts-icon"></ion-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Page -->
+    <div id="search-pg">
+        <div class="search-pg-bar">
+            <input type="text" placeholder="Search for news, topics, or authors...">
+            <ion-icon name="search-outline"></ion-icon>
+            <ion-icon name="close-outline" class="close-search"></ion-icon>
+        </div>
+    </div>
+
+    <!-- Navigation Panel -->
+    <div id="nav-panel">
+        <div class="nav-panel-content">
+            <ion-icon name="close-outline" class="close-nav"></ion-icon>
+            <a href="/actuality.html">
+                <ion-icon name="calendar-clear-outline"></ion-icon>
+                <span>Actuality</span>
+            </a>
+            <a href="/charts.html">
+                <ion-icon name="bar-chart-outline"></ion-icon>
+                <span>Music Charts</span>
+            </a>
+            <a href="#services-panel">
+                Services
+            </a>
+            <a href="http://localhost:8080/livestream.html">
+                <ion-icon name="radio-outline"></ion-icon>
+                <span>Live Streaming</span>
+            </a>
+            <a href="#">
+                <ion-icon name="search-outline"></ion-icon>
+                <span>Events</span>
+            </a>
+            <a href="#">Join Us</a>
+        </div>
+    </div>
+
+    <!-- News Portal Content -->
+    <div class="container">
+        <div class="breaking-news">
+            <h2><i class="fas fa-bolt"></i> BREAKING NEWS</h2>
+            <p>Ukraine shoots down two Russian aircraft in disastrous day for Kremlin - Huge blow for Putin</p>
+        </div>
+
+        <div class="section-nav">
+            <div class="container">
+                <ul>
+                    <li><a href="#politics" class="active">Politics</a></li>
+                    <li><a href="#business">Business</a></li>
+                    <li><a href="#technology">Technology</a></li>
+                    <li><a href="#sports">Sports</a></li>
+                    <li><a href="#entertainment">Entertainment</a></li>
+                    <li><a href="#health">Health</a></li>
+                    <li><a href="#science">Science</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <section id="politics" class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">Politics</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/putin-and-trump.jpg" alt="Politics news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">September 08, 2025</div>
+                        <h3 class="news-title">Putin Meets With Trump - Massive Cold Water To Europe</h3>
+                        <p class="news-excerpt">The 2025 Russia–United States Summit (also known as the Alaska 2025 or the Trump–Putin Summit) was a summit meeting between United States president Donald Trump and Russian president Vladimir Putin. It was held on August 15, 2025, at Joint Base Elmendorf–Richardson in Anchorage, Alaska.</p>
+                        <div class="full-content">
+                            <p>The main topic of discussion was the ongoing Russo-Ukrainian War. The summit ended without an agreement being announced, although Trump later intimated that in his view the onus was now on Ukraine to cede territory in order to end the war.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/politech-africa.jpg" alt="Politics news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">September 08, 2025</div>
+                        <h3 class="news-title">SPBPU - Peter The Great University With African Leaders To Launch Educational Programs in Africa </h3>
+                        <p class="news-excerpt">Perhaps, it was about the cooperation of the Peter the Great St. Petersburg Polytechnic University (SPbPU) with African countries in the field of education.</p>
+                        <div class="full-content">
+                            <p>In January 2025, it was reported that at the 12th meeting of the mixed intergovernmental Russian-Algerian commission, agreements on scientific exchanges and joint educational programs were signed between SPbPU and a number of Algerian universities.</p>
+                            <p>SPbPU is the coordinator of the consortium of Russian and African universities and research organizations "Russian-African Network University" (RAFU). The consortium implements, in particular, short-term educational programs for African citizens.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/politech_logo.jpg" alt="Politics news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">September 08, 2025</div>
+                        <h3 class="news-title">SPBPU Remains At The Top-10 Univerities in Russia 7 Years In a Row By RAEX-100</h3>
+                        <p class="news-excerpt">SPbPU entered the top ten national universities in Russia. Russian education.</p>
+                        <div class="full-content">
+                            <p>It is possible that this was a reference to a post from the Polytech Global VKontakte community published on June 10, 2025. It reported that Peter the Great St. Petersburg Polytechnic University (SPbPU) took 8th place in the ranking of the best universities in Russia (RAEX-2025).</p>
+                            <p>The ranking is based on surveys of more than 150,000 students, teachers, and employers.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="business" class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">Business</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/image1.jpg" alt="Business news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 15, 2025</div>
+                        <h3 class="news-title">Stock Market Reaches Record High Amid Economic Recovery</h3>
+                        <p class="news-excerpt">Major indices surge as economic indicators show strong post-pandemic recovery trends.</p>
+                        <div class="full-content">
+                            <p>The S&P 500 and Dow Jones Industrial Average both closed at record highs today, continuing a rally that has now lasted for seven consecutive trading sessions. The NASDAQ also saw significant gains, particularly in technology stocks.</p>
+                            <p>Market analysts point to stronger-than-expected employment data and consumer spending figures as key drivers of the rally. "The economy is showing remarkable resilience," noted chief economist Maria Johnson. "We're seeing broad-based growth across multiple sectors."</p>
+                            <p>Despite the positive trends, some analysts caution that inflation concerns could temper market enthusiasm in the coming months.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/image2.jpg" alt="Business news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 14, 2025</div>
+                        <h3 class="news-title">Tech Giant Announces Major Acquisition Deal</h3>
+                        <p class="news-excerpt">Industry leader expands portfolio with strategic purchase of emerging AI startup.</p>
+                        <div class="full-content">
+                            <p>Global tech conglomerate InnovateCorp has announced its acquisition of NeuralMind, an artificial intelligence startup specializing in natural language processing. The deal, valued at approximately $2.3 billion, represents one of the largest AI acquisitions this year.</p>
+                            <p>"NeuralMind's technology perfectly complements our existing AI capabilities," said InnovateCorp CEO Sarah Chen. "This acquisition will accelerate our development of next-generation conversational AI systems."</p>
+                            <p>The acquisition is subject to regulatory approval but is expected to close by the end of the third quarter. NeuralMind will continue to operate as an independent subsidiary, with all current employees retaining their positions.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/image3.jpg" alt="Business news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 13, 2025</div>
+                        <h3 class="news-title">Central Banks Announce Coordinated Response to Inflation</h3>
+                        <p class="news-excerpt">Global financial institutions take unified approach to address rising inflation concerns.</p>
+                        <div class="full-content">
+                            <p>In an unprecedented move, central banks from major economies have announced a coordinated strategy to address persistently high inflation rates. The plan includes synchronized interest rate adjustments and liquidity management measures.</p>
+                            <p>"Inflation is a global challenge that requires a global response," stated the chair of the Federal Reserve. "By working together, we can achieve greater impact while minimizing disruptive capital flows between economies."</p>
+                            <p>The announcement has been generally well-received by markets, though some economists have questioned the long-term effectiveness of the approach. The first phase of the coordinated policy is set to be implemented next month.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="technology" class="news-section">
+            <div class="section-header">
+                <h2 class="section-title">Technology</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/image4.jpeg" alt="Technology news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 15, 2025</div>
+                        <h3 class="news-title">Breakthrough in Quantum Computing Announced</h3>
+                        <p class="news-excerpt">Researchers achieve significant milestone in quantum bit stability, paving way for practical applications.</p>
+                        <div class="full-content">
+                            <p>A team of researchers at Quantum Labs International has announced a major breakthrough in quantum computing stability. Their new error-correction technique has demonstrated the ability to maintain quantum coherence for unprecedented durations, addressing one of the fundamental challenges in practical quantum computing.</p>
+                            <p>"This represents a quantum leap forward, quite literally," said Dr. Elena Rodriguez, lead researcher on the project. "We've effectively extended the window for reliable quantum operations by several orders of magnitude."</p>
+                            <p>The breakthrough could accelerate the development of practical quantum computers capable of solving complex problems in fields ranging from drug discovery to climate modeling. The team has published their findings in the latest issue of Nature Physics.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/image5.jpg" alt="Technology news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 14, 2025</div>
+                        <h3 class="news-title">New AI Model Demonstrates Remarkable Creative Abilities</h3>
+                        <p class="news-excerpt">Latest neural network architecture shows unprecedented performance in creative tasks.</p>
+                        <div class="full-content">
+                            <p>Researchers at the Artificial Intelligence Research Institute have developed a new neural network model called CreativeNet that demonstrates remarkable abilities in artistic creation. The model can generate original paintings, compose music, and even write poetry that is indistinguishable from human-created works in blind tests.</p>
+                            <p>"What sets CreativeNet apart is its ability to understand and work within aesthetic principles rather than just mimicking patterns," explained lead researcher Dr. James Wilson. "It's not just replicating—it's creating with intentionality."</p>
+                            <p>The model has raised interesting questions about the nature of creativity and the potential for AI to collaborate with human artists. The research team is exploring applications in design, entertainment, and therapy.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="media/images/image6.jpg" alt="Technology news">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">June 13, 2025</div>
+                        <h3 class="news-title">Tech Companies Unveil Next-Generation Smart Devices</h3>
+                        <p class="news-excerpt">Annual tech conference showcases innovative devices featuring enhanced connectivity and AI capabilities.</p>
+                        <div class="full-content">
+                            <p>At the annual Global Tech Expo, leading technology companies unveiled their latest generation of smart devices, featuring significant advancements in AI integration, battery life, and seamless connectivity. The new products include smartphones, wearables, and home automation systems that work together more intuitively than ever before.</p>
+                            <p>"We're moving toward an era where your devices anticipate your needs rather than simply responding to commands," said TechVision CEO Michael Zhang during his keynote address. "The ecosystem is becoming intelligent as a whole, not just as individual components."</p>
+                            <p>Notable innovations included a smartwatch with week-long battery life, phones with holographic display capabilities, and home assistants that can recognize different household members by voice and tailor responses accordingly.</p>
+                        </div>
+                        <a class="read-more" data-state="more">Read More <i class="fas fa-chevron-down"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>About KonektemNews</h3>
+                    <p>Delivering accurate and timely news coverage from around the world. Our mission is to inform, educate, and engage our readers.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="#">Politics</a></li>
+                        <li><a href="#">Business</a></li>
+                        <li><a href="#">Technology</a></li>
+                        <li><a href="#">Sports</a></li>
+                        <li><a href="#">Entertainment</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect With Us</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Subscribe to Newsletter</h3>
+                    <p>Stay updated with our latest news and stories by subscribing to our newsletter.</p>
+                    <form>
+                        <input type="email" placeholder="Your Email Address" style="padding:10px; width:100%; margin-top:10px; border-radius:4px; border:none;">
+                        <button type="submit" style="background:#ffcc00; color:#1a4b8c; border:none; padding:10px 15px; margin-top:10px; border-radius:4px; font-weight:bold; cursor:pointer;">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 KonektemNews. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Top Bar functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const iconContainer = document.querySelector('.icon-container');
+            const searchIcon = document.querySelector('.search-icon');
+            const searchPage = document.getElementById('search-pg');
+            const closeSearch = document.querySelector('.close-search');
+            const navPanel = document.getElementById('nav-panel');
+            const closeNav = document.querySelector('.close-nav');
+            
+            // Search functionality
+            if (searchIcon) {
+                searchIcon.addEventListener('click', function() {
+                    searchPage.style.display = 'flex';
+                });
+            }
+            
+            if (closeSearch) {
+                closeSearch.addEventListener('click', function() {
+                    searchPage.style.display = 'none';
+                });
+            }
+            
+            // Navigation panel functionality
+            if (iconContainer) {
+                iconContainer.querySelector('.opts-icon').addEventListener('click', function() {
+                    navPanel.classList.add('open');
+                });
+            }
+            
+            if (closeNav) {
+                closeNav.addEventListener('click', function() {
+                    navPanel.classList.remove('open');
+                });
+            }
+            
+            // Close search page when clicking outside
+            searchPage.addEventListener('click', function(e) {
+                if (e.target === searchPage) {
+                    searchPage.style.display = 'none';
+                }
+            });
+        });
+
+        // Smooth scrolling for section navigation
+        document.querySelectorAll('.section-nav a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                
+                window.scrollTo({
+                    top: targetSection.offsetTop - 70,
+                    behavior: 'smooth'
+                });
+                
+                // Update active class
+                document.querySelectorAll('.section-nav a').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Update active nav link based on scroll position
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.news-section');
+            const navLinks = document.querySelectorAll('.section-nav a');
+            
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (pageYOffset >= (sectionTop - 100)) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // Read More functionality
+        document.querySelectorAll('.read-more').forEach(button => {
+            button.addEventListener('click', function() {
+                const fullContent = this.previousElementSibling;
+                const excerpt = fullContent.previousElementSibling;
+                
+                if (this.getAttribute('data-state') === 'more') {
+                    // Expand content
+                    fullContent.classList.add('expanded');
+                    excerpt.classList.add('expanded');
+                    this.innerHTML = 'Read Less <i class="fas fa-chevron-up"></i>';
+                    this.setAttribute('data-state', 'less');
+                } else {
+                    // Collapse content
+                    fullContent.classList.remove('expanded');
+                    excerpt.classList.remove('expanded');
+                    this.innerHTML = 'Read More <i class="fas fa-chevron-down"></i>';
+                    this.setAttribute('data-state', 'more');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
