@@ -1,0 +1,104 @@
+@startuml
+entity "News" as news{
++id : INT (pk)
+--
+*newsImg : BIGINT (fk)
+*newsTitle : VARCHAR(150)
+*newsDate : DATE
+}
+
+entity "Images" as images {
++id : BIGINT(20) pk
+--
+*location : VARCHAR(200) pk
+*mime_type : VARCHAR(200)
+}
+
+entity "Videos" as videos {
++id : BIGINT(20)
+--
+*vidImg : BIGINT(20)
+*vidTitle : TEXT
+*location : VARCHAR(200)
+*mime_type : VARCHAR(255)
+}
+
+entity "Music" as music {
++id : INT (pk)
++track_name : VARCHAR(100) (pk)
+--
+*artist_name : VARCHAR(100)
+*track_img_id : BIGINT(20)
+*location : VARCHAR(200)
+*mime_type : VARCHAR(255)
+*likes : BIGINT
+*downloads : BIGINT
+*plays : BIGINT
+}
+
+entity "Artist" as artists {
++id : BIGINT(20) pk
+--
+*name : VARCHAR(100)
+}
+
+entity "User" as user {
++id : BIGINT(20)
++name : VARCHAR(20)
+--
+*email : VARCHAR(50)
+*created_at : TIMESTAMP
+*password_hash : VARCHAR(255)
+}
+
+entity "viewers" as viewer {
++id : BIGINT(20) 
+--
+*name : VARCHAR(20)
+*access_key_id : BIGINT(20)
+}
+
+entity "streamAccesskeys" as sk {
++id : BIGINT(20)
++access_key : VARCHAR(20)
+--
+*date_start : TIMESTAMP
+*date_end : TIMESTAMP
+}
+
+entity "livestream"{
++id : BIGINT(20) pk
+--
+*stream_date : DATETIME
+*stream_title : TEXT
+*stream_key : VARCHAR(200)
+}
+
+entity "events" as events {
++id : BIGINT(20) pk
+--
+*title : VARCHAR(200)
+*eventDate : DATE
+*location : VARCHAR(200)
+*price : INT
+*eventImage : BIGINT(20) UNSIGNED
+}
+
+entity "services" as services {
++id : BIGINT(20) pk
+--
+*name : VARCHAR(50)
+*description : TEXT
+*serviceImg : BIGINT(20)
+}
+
+services ||--o{ images : service_img
+events ||--o{ images : event_img
+videos ||--o{ images : vid_cvr_img
+music ||--o{ images : track_image
+music ||--o{ artists : artist_name
+news ||--o{ images : news_cvr_img
+viewer ||--o{ user : name
+viewer ||--o{ sk : access_key_id
+
+@enduml
