@@ -21,3 +21,7 @@
 </div>
 <div id="nav-panel" class="grey-clr no-ovrflw no-margin"></div>
 ```
+
+## 2025-10-20
+for the top bar only include the \<div id="top-bar" class="no-margin flxDisp"\>\<div\> container. do not put any footer and do not add styles for your top bar. they are already in a static file.
+dont add a footer and dont add a nav panel for the page (concerning the shared nav panel)
