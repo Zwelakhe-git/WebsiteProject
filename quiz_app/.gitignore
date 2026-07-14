@@ -1,0 +1,181 @@
+# ============================================
+# DEPENDENCIES
+# ============================================
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================
+# ENVIRONMENT VARIABLES
+# ============================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+.env.example
+
+# ============================================
+# BUILD OUTPUTS
+# ============================================
+# Client build
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+
+# Server build
+server/dist/
+server/build/
+
+# ============================================
+# IDE AND EDITOR FILES
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+*.iml
+
+# ============================================
+# LOGS
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ============================================
+# TESTING
+# ============================================
+coverage/
+.nyc_output/
+*.test.js
+*.spec.js
+__tests__/
+__mocks__/
+
+# ============================================
+# DATABASE
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+mongodb-data/
+data/
+
+# ============================================
+# OS FILES
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.tmp
+*.temp
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+*.tmp
+*.temp
+*.bak
+*.cache
+*.tsbuildinfo
+
+# ============================================
+# PROJECT SPECIFIC
+# ============================================
+# Uploads
+uploads/
+images/
+temp/
+
+# Backup files
+*.backup
+*.old
+*.orig
+
+# Certificates
+*.pem
+*.key
+*.crt
+*.p12
+
+# ============================================
+# MISC
+# ============================================
+# TypeScript
+*.tsbuildinfo
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettiercache
+
+# Vite
+vite.config.ts.timestamp-*
+
+# Webpack
+webpack-stats.json
+
+# ============================================
+# FRONTEND SPECIFIC
+# ============================================
+# React
+src/__generated__/
+
+# Tailwind
+tailwind.css
+
+# ============================================
+# BACKEND SPECIFIC
+# ============================================
+# Node
+node_modules/
+server/node_modules/
+
+# MongoDB
+mongod.log
+mongodb.log
+
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+*.dockerignore
+docker/data/
+docker/mongodb/
+
+# ============================================
+# GIT
+# ============================================
+*.patch
+*.diff
+.gitattributes
+.gitmodules
