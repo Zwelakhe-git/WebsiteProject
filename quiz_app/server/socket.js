@@ -2,6 +2,7 @@
 const Quiz = require('./models/Quiz');
 const Question = require('./models/Question');
 const Result = require('./models/Result');
+const User = require('./models/User');
 
 // Хранилище комнат
 const rooms = new Map();
@@ -76,6 +77,8 @@ module.exports = (io) => {
             score: 0,
             hasAnswered: false,
             userId: userId,
+            correctAnswers: [],
+            questionStartTime: 0
           });
           room.totalParticipants++;
           console.log(`👤 New participant ${username} added to room ${roomCode}`);
@@ -239,7 +242,9 @@ module.exports = (io) => {
         console.log(`📚 Loaded ${room.totalQuestions} questions for room ${roomCode}`);
 
         // Отправляем всем, что игра началась
-        io.to(roomCode).emit('quiz-started');
+        io.to(roomCode).emit('quiz-started', {
+          timeLimit: quiz.timeLimit
+        });
         
         let timeLimit = Number(quiz.timeLimit) * 1000;
         // Запускаем первый вопрос через 2 секунды
@@ -277,6 +282,7 @@ module.exports = (io) => {
       
       // Сбрасываем ответы участников
       room.participants.forEach((p) => {
+        p.questionStartTime = Date.now()
         p.hasAnswered = false;
       });
 
@@ -325,7 +331,7 @@ module.exports = (io) => {
 
       console.log(`📊 Results for room ${roomCode}:`, results);
 
-      // Сохраняем результаты в базу данных
+      // Сохраняем результаты в базу данных и обновляем статистику пользователей
       try {
         // Для каждого участника сохраняем результат
         for (const participant of room.participants.values()) {
@@ -340,7 +346,7 @@ module.exports = (io) => {
               quizId: room.quizId,
               userId: participant.userId,
               score: participant.score || 0,
-              answers: [],
+              answers: participant.correctAnswers,
               timeTaken: 0,
             });
             await result.save();
@@ -350,6 +356,22 @@ module.exports = (io) => {
             existingResult.score = participant.score || 0;
             await existingResult.save();
             console.log(`✅ Result updated for ${participant.username}`);
+          }
+
+          // Обновляем статистику участника
+          const user = await User.findById(participant.userId);
+          if (user) {
+            // Увеличиваем количество пройденных квизов
+            user.totalQuizzesPlayed = (user.totalQuizzesPlayed || 0) + 1;
+            
+            // Обновляем общее количество баллов
+            user.totalPoints = (user.totalPoints || 0) + (participant.score || 0);
+            
+            // Пересчитываем средний балл
+            user.averageScore = Math.round(user.totalPoints / user.totalQuizzesPlayed);
+            
+            await user.save();
+            console.log(`✅ User stats updated for ${participant.username}: totalQuizzesPlayed=${user.totalQuizzesPlayed}, avgScore=${user.averageScore}`);
           }
         }
 
@@ -443,23 +465,26 @@ module.exports = (io) => {
         let isCorrect = false;
         let userAnswer = answer || selectedOption;
 
+        let participantAnswer = selectedOption;
+        let correctAnswer = question.correctAnswer;
+
         if (question.type === 'text') {
           isCorrect = userAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim();
-        } else if (question.type === 'single_choice') {
-          isCorrect = selectedOption === question.correctAnswer;
-        } else if (question.type === 'multiple_choice') {
-          console.log("checking multiple choice question");
-          console.log("type of selected option: " + selectedOption.constructor.name);
-          console.log(question.options.constructor.name);
+        } else if (question.type === 'multiple_choice' || question.type === 'single_choice') {
           if (Array.isArray(selectedOption)){
-            const answerText = JSON.stringify(selectedOption.sort());
-            const optionsText = JSON.stringify(question.options.filter(opt => opt.isCorrect).map(opt => opt.text).sort());
-            console.log(answerText, optionsText);
-            isCorrect = answerText === optionsText;
-          } else {
-            isCorrect = false;
+            participantAnswer = JSON.stringify(selectedOption.sort());
+            correctAnswer = JSON.stringify(question.options.filter(opt => opt.isCorrect).map(opt => opt.text).sort());
+            isCorrect = participantAnswer === correctAnswer;
+            console.log(participantAnswer, correctAnswer);
           }
         }
+
+        participant.correctAnswers = [...participant.correctAnswers, {
+          questionId: question._id,
+          selectedOption: participantAnswer,
+          isCorrect: isCorrect,
+          timeSpent: (participant.questionStartTime - Date.now()) / 1000
+        }];
 
         const points = isCorrect ? question.points : 0;
         
@@ -473,7 +498,7 @@ module.exports = (io) => {
         socket.emit('answer-result', {
           isCorrect,
           points,
-          correctAnswer: question.correctAnswer,
+          correctAnswer: correctAnswer,
           totalScore: participant.score,
         });
 

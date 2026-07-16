@@ -27,6 +27,7 @@ app.use(cors({
 app.use(express.json());
 
 // Подключение к MongoDB
+console.log("attempting to connect ot mongodb: ", process.env.MONGODB_URI);
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quiz_app', {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -35,16 +36,20 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quiz_app'
 .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Импорт роутов
+const appRoutes = require('./routes/app');
 const authRoutes = require('./routes/auth');
 const quizRoutes = require('./routes/quiz');
 const questionRoutes = require('./routes/questions');
 const roomRoutes = require('./routes/room');
+const participantRoutes = require('./routes/participant');
 
 // Роуты
+app.use('', appRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/room', roomRoutes);
+app.use('/api/participant', participantRoutes);
 
 // WebSocket обработка
 require('./socket')(io);
@@ -55,7 +60,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Внутренняя ошибка сервера' });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   const ifaces = os.networkInterfaces();

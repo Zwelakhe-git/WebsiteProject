@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
@@ -39,6 +40,10 @@ const UserSchema = new mongoose.Schema({
     default: 0
   },
   averageScore: {
+    type: Number,
+    default: 0
+  },
+  totalPoints: {
     type: Number,
     default: 0
   }

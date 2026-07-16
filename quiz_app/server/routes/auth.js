@@ -102,7 +102,11 @@ router.get('/me', authMiddleware, async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        role: user.role
+        role: user.role,
+        totalQuizzesPlayed: user.totalQuizzesPlayed || 0,
+        totalQuizzesOrganized: user.totalQuizzesOrganized || 0,
+        averageScore: user.averageScore || 0,
+        totalPoints: user.totalPoints || 0,
       }
     });
   } catch (error) {

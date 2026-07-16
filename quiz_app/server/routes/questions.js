@@ -7,7 +7,7 @@ const authMiddleware = require('../middleware/auth');
 // Добавление вопроса к квизу
 router.post('/add', authMiddleware, async (req, res) => {
   try {
-    const { 
+    let { 
       quizId, 
       type, 
       questionText, 
@@ -37,9 +37,15 @@ router.post('/add', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'Для текстового вопроса требуется правильный ответ' });
     }
 
-    if ((type === 'single_choice' || type === 'multiple_choice') && (!options || options.length < 2)) {
-      return res.status(400).json({ error: 'Для вопроса с выбором требуется минимум 2 варианта' });
+    if (type === 'single_choice' || type === 'multiple_choice'){
+      if(!options || options.length < 2) {
+        return res.status(400).json({ error: 'Для вопроса с выбором требуется минимум 2 варианта' });
+      }
+      console.log("saving correct answer");
+      correctAnswer = JSON.stringify(options.filter(opt => opt.isCorrect).map(opt => opt.text).sort());
+      console.log(correctAnswer)
     }
+
 
     const question = new Question({
       quizId,
@@ -51,6 +57,8 @@ router.post('/add', authMiddleware, async (req, res) => {
       points: points || 10,
       order: order || quiz.questions.length
     });
+
+    console.log("saved correct answer for question " + question.questionText + ": " + question.correctAnswer);
 
     await question.save();
 
