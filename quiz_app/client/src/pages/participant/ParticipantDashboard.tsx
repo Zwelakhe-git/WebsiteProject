@@ -11,9 +11,7 @@ import {
   Users,
   Clock,
   Award,
-  TrendingUp,
   Calendar,
-  Star,
   Gamepad2,
   LogOut,
   Settings,
@@ -21,10 +19,10 @@ import {
   BarChart3,
   Medal,
   Sparkles,
-  ChevronRight,
   PlusCircle,
   User,
-  CheckCircle
+  CheckCircle,
+  Loader2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -36,9 +34,11 @@ import {
 } from '@/app/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { useAuthWithNavigate } from '@/hooks/useAuthWithNavigate';
 
 interface QuizHistory {
   id: string;
+  quizId: string,
   title: string;
   category: string;
   date: string;
@@ -61,7 +61,8 @@ interface Stats {
 
 export const ParticipantDashboard = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  //const { user, logout } = useAuth();
+  const { user, logoutAndNavigate } = useAuthWithNavigate();
   const [history, setHistory] = useState<QuizHistory[]>([]);
   const [stats, setStats] = useState<Stats>({
     totalQuizzes: 0,
@@ -72,6 +73,7 @@ export const ParticipantDashboard = () => {
     totalPoints: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -80,107 +82,75 @@ export const ParticipantDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setIsLoading(true);
-      // В реальном приложении здесь будут запросы к API
-      // Пока используем моковые данные
+      setError(null);
       
-      // Моковая история квизов
-      const mockHistory: QuizHistory[] = [
-        {
-          id: '1',
-          title: 'Викторина по истории России',
-          category: 'История',
-          date: '2024-01-15T14:30:00',
-          score: 850,
-          totalQuestions: 10,
-          correctAnswers: 8,
-          rank: 2,
-          totalParticipants: 25,
-          isCompleted: true,
-        },
-        {
-          id: '2',
-          title: 'География мира',
-          category: 'География',
-          date: '2024-01-14T18:45:00',
-          score: 720,
-          totalQuestions: 10,
-          correctAnswers: 7,
-          rank: 5,
-          totalParticipants: 30,
-          isCompleted: true,
-        },
-        {
-          id: '3',
-          title: 'Научные факты',
-          category: 'Наука',
-          date: '2024-01-13T20:00:00',
-          score: 950,
-          totalQuestions: 10,
-          correctAnswers: 9,
-          rank: 1,
-          totalParticipants: 20,
-          isCompleted: true,
-        },
-        {
-          id: '4',
-          title: 'Кино и сериалы',
-          category: 'Кино',
-          date: '2024-01-12T16:20:00',
-          score: 680,
-          totalQuestions: 10,
-          correctAnswers: 6,
-          rank: 8,
-          totalParticipants: 35,
-          isCompleted: true,
-        },
-        {
-          id: '5',
-          title: 'Музыкальная викторина',
-          category: 'Музыка',
-          date: '2024-01-11T19:30:00',
-          score: 790,
-          totalQuestions: 10,
-          correctAnswers: 8,
-          rank: 3,
-          totalParticipants: 22,
-          isCompleted: true,
-        },
-      ];
-
-      setHistory(mockHistory);
-
-      // Подсчет статистики
-      const totalQuizzes = mockHistory.length;
-      const totalQuestions = mockHistory.reduce((sum, q) => sum + q.totalQuestions, 0);
-      const totalCorrect = mockHistory.reduce((sum, q) => sum + q.correctAnswers, 0);
-      const totalPoints = mockHistory.reduce((sum, q) => sum + q.score, 0);
-      const bestRank = Math.min(...mockHistory.map(q => q.rank));
-
-      setStats({
-        totalQuizzes,
-        totalQuestions,
-        correctPercentage: totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0,
-        averageScore: totalQuizzes > 0 ? Math.round(totalPoints / totalQuizzes) : 0,
-        bestRank,
-        totalPoints,
-      });
-
-    } catch (error) {
-      console.error('Error loading dashboard:', error);
+      // Получаем историю участия пользователя
+      const response = await api.get('/participant/history');
+      const data = response.data;
+      
+      console.log('📊 Dashboard data:', data);
+      
+      if (data.history && data.history.length > 0) {
+        setHistory(data.history);
+        
+        // Используем статистику с сервера
+        setStats({
+          totalQuizzes: data.stats.totalQuizzes || 0,
+          totalQuestions: data.history.reduce((sum: number, q: QuizHistory) => sum + q.totalQuestions, 0),
+          correctPercentage: data.history.length > 0 
+            ? Math.round((data.history.reduce((sum: number, q: QuizHistory) => sum + q.correctAnswers, 0) / 
+                data.history.reduce((sum: number, q: QuizHistory) => sum + q.totalQuestions, 0)) * 100) 
+            : 0,
+          averageScore: data.stats.averageScore || 0,
+          bestRank: data.stats.bestRank || 0,
+          totalPoints: data.stats.totalPoints || 0,
+        });
+      } else {
+        setHistory([]);
+        setStats({
+          totalQuizzes: 0,
+          totalQuestions: 0,
+          correctPercentage: 0,
+          averageScore: 0,
+          bestRank: 0,
+          totalPoints: 0,
+        });
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Error loading dashboard:', error);
+      setError(error.response?.data?.error || 'Не удалось загрузить данные');
+      
+      if (error.response?.status === 404) {
+        setHistory([]);
+        setStats({
+          totalQuizzes: 0,
+          totalQuestions: 0,
+          correctPercentage: 0,
+          averageScore: 0,
+          bestRank: 0,
+          totalPoints: 0,
+        });
+        setError(null);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return dateString;
+    }
   };
 
   const getScoreColor = (score: number) => {
@@ -198,16 +168,53 @@ export const ParticipantDashboard = () => {
   };
 
   const getInitials = (name: string) => {
+    if (!name) return '??';
     return name.slice(0, 2).toUpperCase();
+  };
+
+  const getCategoryEmoji = (category: string) => {
+    const emojis: Record<string, string> = {
+      'История': '📜',
+      'География': '🌍',
+      'Наука': '🔬',
+      'Кино': '🎬',
+      'Музыка': '🎵',
+      'Спорт': '⚽',
+      'Литература': '📚',
+      'Искусство': '🎨',
+      'Технологии': '💻',
+      'Разное': '📌',
+    };
+    return emojis[category] || '📌';
+  };
+  const handleLogout = () => {
+    logoutAndNavigate();
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4" />
-          <p className="text-gray-500">Загрузка...</p>
+          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Загрузка данных...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <div className="text-4xl mb-4">😕</div>
+            <h3 className="text-xl font-semibold mb-2">Ошибка загрузки</h3>
+            <p className="text-gray-500 mb-4">{error}</p>
+            <Button onClick={loadDashboardData} className="bg-purple-600 hover:bg-purple-700">
+              Попробовать снова
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -228,16 +235,21 @@ export const ParticipantDashboard = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              <Link to="/join-quiz">
+              <div className="flex justify-between items-center gap-1">
+                <Link to="/">
+                  <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleLogout}>Выйти</Button>
+                </Link>
+                <Link to="/join-quiz">
                 <Button className="bg-purple-600 hover:bg-purple-700">
                   <Gamepad2 className="w-4 h-4 mr-2" />
                   Присоединиться
                 </Button>
               </Link>
+              </div>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2">
+                  <button className="flex items-center gap-2 hover:bg-gray-50 rounded-lg px-2 py-1 transition-colors">
                     <Avatar className="w-8 h-8">
                       <AvatarFallback className="bg-purple-100 text-purple-600">
                         {getInitials(user?.username || 'User')}
@@ -259,12 +271,12 @@ export const ParticipantDashboard = () => {
                     <Settings className="w-4 h-4 mr-2" />
                     Настройки
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/participant/dashboard')}>
                     <History className="w-4 h-4 mr-2" />
                     История
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="text-red-600">
+                  <DropdownMenuItem onClick={logoutAndNavigate} className="text-red-600">
                     <LogOut className="w-4 h-4 mr-2" />
                     Выйти
                   </DropdownMenuItem>
@@ -328,7 +340,9 @@ export const ParticipantDashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Лучшее место</p>
-                  <p className="text-2xl font-bold">#{stats.bestRank}</p>
+                  <p className="text-2xl font-bold">
+                    {stats.bestRank > 0 ? `#${stats.bestRank}` : '—'}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                   <Trophy className="w-6 h-6 text-red-600" />
@@ -392,11 +406,7 @@ export const ParticipantDashboard = () => {
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                         <span className="text-2xl">
-                          {quiz.category === 'История' && '📜'}
-                          {quiz.category === 'География' && '🌍'}
-                          {quiz.category === 'Наука' && '🔬'}
-                          {quiz.category === 'Кино' && '🎬'}
-                          {quiz.category === 'Музыка' && '🎵'}
+                          {getCategoryEmoji(quiz.category)}
                         </span>
                       </div>
                       <div>
@@ -405,6 +415,15 @@ export const ParticipantDashboard = () => {
                           <Badge variant="outline" className="text-xs">
                             {quiz.category}
                           </Badge>
+                          {quiz.isCompleted ? (
+                            <Badge className="bg-green-100 text-green-700 text-xs">
+                              Завершен
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-yellow-100 text-yellow-700 text-xs">
+                              В процессе
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                           <span className="flex items-center gap-1">
@@ -414,10 +433,16 @@ export const ParticipantDashboard = () => {
                           <span>
                             {quiz.correctAnswers}/{quiz.totalQuestions} правильных
                           </span>
-                          {quiz.rank <= 3 && (
+                          {quiz.rank <= 3 && quiz.rank > 0 && (
                             <span className="flex items-center gap-1">
                               {getMedalIcon(quiz.rank)}
                               Место #{quiz.rank}
+                            </span>
+                          )}
+                          {quiz.totalParticipants > 0 && (
+                            <span className="flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              {quiz.totalParticipants} участников
                             </span>
                           )}
                         </div>
@@ -434,7 +459,8 @@ export const ParticipantDashboard = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/leaderboard/${quiz.id}`)}
+                        onClick={() => navigate(`/leaderboard/${quiz.quizId}`)}
+                        title="Посмотреть результаты"
                       >
                         <BarChart3 className="w-4 h-4" />
                       </Button>

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
+import { timeLog } from 'console';
 
 interface Participant {
   userId: string;
@@ -146,9 +147,12 @@ export const WaitingRoom = () => {
       setCountdown(data.seconds);
     };
 
-    const onQuizStarted = () => {
+    const onQuizStarted = (quizParams: {
+      timeLimit: number,
+    }) => {
       console.log('🚀 WaitingRoom: Quiz started!');
       setState(prev => ({ ...prev, isStarted: true }));
+      sessionStorage.setItem('quizTimeLimit', `${quizParams.timeLimit}`);
       
       // Используем replace, чтобы нельзя было вернуться назад
       navigate(`/game/${roomCode}/play`, { replace: true });

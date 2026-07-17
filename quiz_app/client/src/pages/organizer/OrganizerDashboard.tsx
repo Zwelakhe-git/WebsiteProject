@@ -41,12 +41,16 @@ interface Quiz {
 export const OrganizerDashboard = () => {
   const navigate = useNavigate();
   const { user, logoutAndNavigate } = useAuthWithNavigate();
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]); // Initialize as empty array
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
     completed: 0,
+    totalParticipants: 0,
+  });
+  const [organizerStats, setOrganizerStats] = useState({
+    totalQuizzesOrganized: 0,
     totalParticipants: 0,
   });
 
@@ -58,22 +62,50 @@ export const OrganizerDashboard = () => {
     try {
       setIsLoading(true);
       const response = await api.get('/quiz/my-quizzes');
-      const data = response.data.quizzes;
-      setQuizzes(data);
+      let data = [];
+      if (response.data && Array.isArray(response.data)) {
+        data = response.data;
+      } else if (response.data && response.data.quizzes && Array.isArray(response.data.quizzes)) {
+        data = response.data.quizzes;
+      } else if (response.data && typeof response.data === 'object') {
+        // Try to find an array property
+        const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
+        if (possibleArrays.length > 0) {
+          data = possibleArrays[0];
+        }
+      }
+      console.log("fetch quiz response: ", response);
       
-      // Подсчет статистики
-      const active = data.filter((q: Quiz) => q.status === 'active').length;
-      const completed = data.filter((q: Quiz) => q.status === 'completed').length;
-      const totalParticipants = data.reduce((sum: number, q: Quiz) => sum + q.participantsCount, 0);
+      setQuizzes(data || []);
+      
+      // Подсчет статистики (safe access)
+      const safeData = data || [];
+      const active = safeData.filter((q: Quiz) => q.status === 'active').length;
+      const completed = safeData.filter((q: Quiz) => q.status === 'completed').length;
+      const totalParticipants = safeData.reduce((sum: number, q: Quiz) => sum + (q.participantsCount || 0), 0);
       
       setStats({
-        total: data.length,
+        total: safeData.length,
         active,
         completed,
         totalParticipants,
       });
+
+      const userResponse = await api.get('/auth/me');
+      setOrganizerStats({
+        totalQuizzesOrganized: userResponse.data.user.totalQuizzesOrganized || 0,
+        totalParticipants: totalParticipants,
+      });
     } catch (error) {
       console.error('Error loading quizzes:', error);
+      // Set empty state on error
+      setQuizzes([]);
+      setStats({
+        total: 0,
+        active: 0,
+        completed: 0,
+        totalParticipants: 0,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -135,7 +167,7 @@ export const OrganizerDashboard = () => {
             </div>
             <div className="flex justify-between items-center gap-1">
               <Link to="/">
-                <Button className="bg-purple-600 hover:bg-purple-700" onClick={logoutAndNavigate}>Выйти</Button>
+                <Button className="bg-purple-600 hover:bg-purple-700" onClick={handleLogout}>Выйти</Button>
               </Link>
               <Link to="/organizer/create-quiz/step1">
                 <Button className="bg-purple-600 hover:bg-purple-700">
@@ -150,29 +182,29 @@ export const OrganizerDashboard = () => {
 
       {/* Stats */}
       <section className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Всего квизов</p>
-                  <p className="text-2xl font-bold">{stats.total}</p>
+                  <p className="text-sm text-purple-600 font-medium">Всего квизов</p>
+                  <p className="text-3xl font-bold text-purple-700">{stats.total}</p>
                 </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-purple-200 rounded-full flex items-center justify-center">
                   <span className="text-purple-600 text-xl">📊</span>
                 </div>
               </div>
             </CardContent>
           </Card>
-
-          <Card>
+          
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Активных</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                  <p className="text-sm text-green-600 font-medium">Активных</p>
+                  <p className="text-3xl font-bold text-green-700">{stats.active}</p>
                 </div>
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center">
                   <span className="text-green-600 text-xl">▶️</span>
                 </div>
               </div>
@@ -216,14 +248,14 @@ export const OrganizerDashboard = () => {
             <CardTitle className="flex items-center justify-between">
               <span>Мои квизы</span>
               <span className="text-sm font-normal text-gray-500">
-                {quizzes.length} квизов
+                {quizzes?.length || 0} квизов
               </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8 text-gray-500">Загрузка...</div>
-            ) : quizzes.length === 0 ? (
+            ) : !quizzes || quizzes.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl mb-4">📝</div>
                 <h3 className="text-xl font-semibold mb-2">У вас пока нет квизов</h3>
@@ -256,11 +288,11 @@ export const OrganizerDashboard = () => {
                       <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <span className="text-gray-400">📚</span>
-                          {quiz.questionsCount} вопросов
+                          {quiz.questionsCount || 0} вопросов
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="text-gray-400">👥</span>
-                          {quiz.participantsCount} участников
+                          {quiz.participantsCount || 0} участников
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="text-gray-400">📅</span>
@@ -268,7 +300,7 @@ export const OrganizerDashboard = () => {
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="text-gray-400">🏷️</span>
-                          {quiz.category}
+                          {quiz.category || 'Без категории'}
                         </span>
                       </div>
                     </div>

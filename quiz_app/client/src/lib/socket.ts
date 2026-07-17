@@ -1,7 +1,7 @@
 // src/lib/socket.ts
 import { io, Socket } from 'socket.io-client';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:5000';
+const WS_URL = import.meta.env.VITE_SERVER_URL ?? '';
 
 export class SocketClient {
   private socket: Socket | null = null;

@@ -1,7 +1,7 @@
 // src/lib/api.ts
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_SERVER_URL + '/api';
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -20,6 +20,7 @@ api.interceptors.request.use(
     } else {
       console.log('token not found');
     }
+    console.log('request to ' + config.baseURL);
     return config;
   },
   (error) => {

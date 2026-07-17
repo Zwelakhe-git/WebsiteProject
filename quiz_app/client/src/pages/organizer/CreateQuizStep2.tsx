@@ -19,7 +19,6 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/app/components/ui/dialog';
 import { Badge } from '@/app/components/ui/badge';
@@ -28,19 +27,68 @@ import {
   GripVertical, 
   Trash2, 
   Edit, 
-  Image as ImageIcon,
   X,
-  AlertCircle
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Zap,
 } from 'lucide-react';
 import { useQuizCreation, Question } from '@/hooks/useQuizCreation';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
 
 const QUESTION_TYPES = [
-  { value: 'text', label: 'Текстовый ответ' },
-  { value: 'single_choice', label: 'Одиночный выбор' },
-  { value: 'multiple_choice', label: 'Множественный выбор' },
-  { value: 'image', label: 'Вопрос с изображением' },
+  { value: 'text', label: 'Text Answer' },
+  { value: 'single_choice', label: 'Single Choice' },
+  { value: 'multiple_choice', label: 'Multiple Choice' },
+  { value: 'image', label: 'Image Question' },
 ];
+
+// Progress Steps Component
+const ProgressSteps = ({ currentStep }: { currentStep: number }) => {
+  const steps = ['Basic Info', 'Questions', 'Preview & Publish'];
+  
+  return (
+    <div className="mb-10">
+      <div className="flex justify-between mb-3">
+        {steps.map((s, i) => (
+          <span
+            key={s}
+            className={`text-xs font-semibold transition-colors ${
+              currentStep > i ? "text-[#6C63FF]" : currentStep === i + 1 ? "text-[#1a1535]" : "text-[#6b6a8a]"
+            }`}
+          >
+            Step {i + 1}: {s}
+          </span>
+        ))}
+      </div>
+      <div className="h-2 bg-[#ededf5] rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${(currentStep / 3) * 100}%`,
+            background: "linear-gradient(90deg, #6C63FF, #4f46e5)",
+          }}
+        />
+      </div>
+      <div className="flex justify-between mt-2">
+        {steps.map((_, i) => (
+          <div
+            key={i}
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all -mt-5 border-2 ${
+              currentStep > i
+                ? "bg-[#6C63FF] border-[#6C63FF] text-white"
+                : currentStep === i + 1
+                ? "bg-white border-[#6C63FF] text-[#6C63FF]"
+                : "bg-white border-[#ededf5] text-[#6b6a8a]"
+            }`}
+          >
+            {currentStep > i ? '✓' : i + 1}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export const CreateQuizStep2 = () => {
   const navigate = useNavigate();
@@ -97,7 +145,6 @@ export const CreateQuizStep2 = () => {
       newOptions[index].text = value as string;
     } else {
       newOptions[index].isCorrect = value as boolean;
-      // Для одиночного выбора снимаем другие варианты
       if (currentQuestion.type === 'single_choice' && value === true) {
         newOptions.forEach((opt, i) => {
           if (i !== index) opt.isCorrect = false;
@@ -111,28 +158,27 @@ export const CreateQuizStep2 = () => {
   };
 
   const handleSaveQuestion = () => {
-    // Валидация
     const newErrors: Record<string, string> = {};
     if (!currentQuestion.questionText?.trim()) {
-      newErrors.questionText = 'Введите текст вопроса';
+      newErrors.questionText = 'Enter question text';
     }
     
     if (currentQuestion.type === 'single_choice' || currentQuestion.type === 'multiple_choice') {
       const hasCorrect = currentQuestion.options?.some(opt => opt.isCorrect);
       if (!hasCorrect) {
-        newErrors.options = 'Выберите правильный ответ';
+        newErrors.options = 'Select the correct answer(s)';
       }
       const hasEmpty = currentQuestion.options?.some(opt => !opt.text.trim());
       if (hasEmpty) {
-        newErrors.options = 'Заполните все варианты ответов';
+        newErrors.options = 'Fill in all answer options';
       }
       if ((currentQuestion.options?.length || 0) < 2) {
-        newErrors.options = 'Добавьте минимум 2 варианта ответа';
+        newErrors.options = 'Add at least 2 answer options';
       }
     }
 
     if (currentQuestion.type === 'text' && !currentQuestion.correctAnswer?.trim()) {
-      newErrors.correctAnswer = 'Введите правильный ответ';
+      newErrors.correctAnswer = 'Enter the correct answer';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -177,176 +223,169 @@ export const CreateQuizStep2 = () => {
   };
 
   const getQuestionPreview = (question: Question) => {
-    if (question.type === 'text') {
-      return `📝 Текстовый ответ`;
-    }
-    if (question.type === 'image') {
-      return `🖼️ С изображением`;
-    }
+    if (question.type === 'text') return '📝 Text Answer';
+    if (question.type === 'image') return '🖼️ With Image';
     if (question.type === 'single_choice') {
-      return `🔘 Одиночный выбор (${question.options?.filter(o => o.isCorrect).length || 0} прав.)`;
+      return `🔘 Single Choice (${question.options?.filter(o => o.isCorrect).length || 0} correct)`;
     }
     if (question.type === 'multiple_choice') {
-      return `☑️ Множественный выбор (${question.options?.filter(o => o.isCorrect).length || 0} прав.)`;
+      return `☑️ Multiple Choice (${question.options?.filter(o => o.isCorrect).length || 0} correct)`;
     }
     return '';
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto max-w-4xl px-4">
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">
-              1
-            </div>
-            <div className="h-0.5 flex-1 bg-purple-600" />
-            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">
-              2
-            </div>
-            <div className="h-0.5 flex-1 bg-gray-200" />
-            <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm font-bold">
-              3
-            </div>
-          </div>
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>Основная информация</span>
-            <span className="text-purple-600 font-semibold">Добавление вопросов</span>
-            <span>Публикация</span>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#f8f7ff] pt-24 pb-16 px-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <div className="max-w-2xl mx-auto">
+        <ProgressSteps currentStep={2} />
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <div className="bg-white rounded-3xl shadow-sm border border-[rgba(108,99,255,0.08)] p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#f0efff] flex items-center justify-center">
+                <Zap size={22} className="text-[#6C63FF]" />
+              </div>
               <div>
-                <CardTitle className="text-2xl">Шаг 2: Добавление вопросов</CardTitle>
-                <p className="text-gray-500 mt-1">
-                  Добавьте вопросы для вашего квиза. Всего: {quizData.questions.length} вопросов
+                <h2 className="text-2xl font-extrabold text-[#1a1535]" style={{ fontFamily: "'Nunito', sans-serif" }}>
+                  Questions
+                </h2>
+                <p className="text-[#6b6a8a] text-sm">
+                  {quizData.questions.length} questions added
                 </p>
               </div>
-              <Button onClick={openCreateDialog} className="bg-purple-600 hover:bg-purple-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Добавить вопрос
+            </div>
+            <Button
+              onClick={openCreateDialog}
+              className="flex items-center gap-2 bg-[#6C63FF] text-white font-bold px-5 py-2.5 rounded-xl hover:bg-[#5550e8] transition-all shadow-md shadow-[#6C63FF]/25 active:scale-95 text-sm"
+            >
+              <Plus size={18} />
+              Add Question
+            </Button>
+          </div>
+
+          {quizData.questions.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">❓</div>
+              <h3 className="text-xl font-semibold text-[#1a1535] mb-2">No questions yet</h3>
+              <p className="text-[#6b6a8a] text-sm mb-6">Add your first question to get started</p>
+              <Button
+                onClick={openCreateDialog}
+                className="flex items-center gap-2 bg-[#6C63FF] text-white font-bold px-6 py-3 rounded-xl hover:bg-[#5550e8] transition-all shadow-md shadow-[#6C63FF]/25 active:scale-95"
+              >
+                <Plus size={18} />
+                Add Question
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            {quizData.questions.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">❓</div>
-                <h3 className="text-xl font-semibold mb-2">Нет вопросов</h3>
-                <p className="text-gray-500 mb-4">Добавьте первый вопрос для вашего квиза</p>
-                <Button onClick={openCreateDialog} className="bg-purple-600 hover:bg-purple-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Добавить вопрос
-                </Button>
-              </div>
-            ) : (
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="questions">
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
-                      {quizData.questions.map((question, index) => (
-                        <Draggable key={question.id} draggableId={question.id!} index={index}>
-                          {(provided) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                            >
-                              <div {...provided.dragHandleProps} className="cursor-move text-gray-400 hover:text-gray-600">
-                                <GripVertical className="w-5 h-5" />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3">
-                                  <Badge variant="outline" className="text-purple-600 border-purple-300">
-                                    #{index + 1}
-                                  </Badge>
-                                  <Badge className="bg-purple-100 text-purple-700">
-                                    {getQuestionTypeLabel(question.type)}
-                                  </Badge>
-                                  <span className="text-sm text-gray-500">
-                                    {getQuestionPreview(question)}
-                                  </span>
-                                </div>
-                                <p className="font-medium mt-1 line-clamp-2">
-                                  {question.questionText || 'Без текста вопроса'}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-green-600 border-green-300">
-                                  {question.points} баллов
-                                </Badge>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => openEditDialog(index)}
-                                >
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  onClick={() => removeQuestion(index)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+          ) : (
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="questions">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3 mb-6">
+                    {quizData.questions.map((question, index) => (
+                      <Draggable key={question.id} draggableId={question.id!} index={index}>
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className="flex items-center gap-4 p-4 bg-[#f8f7ff] rounded-2xl border border-[rgba(108,99,255,0.08)] group hover:border-[#6C63FF]/25 transition-all"
+                          >
+                            <div {...provided.dragHandleProps} className="cursor-move text-[#c4c2e8] hover:text-[#6C63FF] transition-colors">
+                              <GripVertical size={16} />
+                            </div>
+                            <div className="w-7 h-7 rounded-lg bg-[#6C63FF]/10 flex items-center justify-center text-xs font-bold text-[#6C63FF] shrink-0">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-[#1a1535] truncate">
+                                {question.questionText || 'No text'}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs text-[#6b6a8a]">{getQuestionTypeLabel(question.type)}</span>
+                                <span className="text-xs text-[#6b6a8a]">•</span>
+                                <span className="text-xs text-[#6b6a8a]">{question.points} pts</span>
                               </div>
                             </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-            )}
+                            <span
+                              className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
+                                question.type === 'text'
+                                  ? "bg-[#f0faf0] text-[#4CAF50]"
+                                  : "bg-[#f0efff] text-[#6C63FF]"
+                              }`}
+                            >
+                              {question.type === 'text' && 'Text'}
+                              {question.type === 'single_choice' && 'Single'}
+                              {question.type === 'multiple_choice' && 'Multiple'}
+                              {question.type === 'image' && 'Image'}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEditDialog(index)}
+                              className="text-[#6b6a8a] hover:text-[#6C63FF]"
+                            >
+                              <Edit size={16} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeQuestion(index)}
+                              className="text-[#6b6a8a] hover:text-red-600"
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          )}
 
-            {/* Навигация */}
-            <div className="flex justify-between pt-6 mt-6 border-t border-gray-200">
+          <div className="flex justify-between pt-6 border-t border-[rgba(108,99,255,0.08)]">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/organizer/create-quiz/step1')}
+              className="flex items-center gap-2 text-sm font-semibold text-[#6b6a8a] hover:text-[#1a1535] transition-colors px-5 py-3 rounded-xl hover:bg-white border-2 border-[rgba(108,99,255,0.15)]"
+            >
+              <ChevronLeft size={16} />
+              Back
+            </Button>
+            <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => navigate('/organizer/create-quiz/step1')}
+                onClick={() => navigate('/organizer/dashboard')}
+                className="text-sm font-semibold text-[#6b6a8a] hover:text-red-600 transition-colors px-5 py-3 rounded-xl hover:bg-white border-2 border-[rgba(108,99,255,0.15)]"
               >
-                ← Назад
+                Cancel
               </Button>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/organizer/dashboard')}
-                >
-                  Отмена
-                </Button>
-                <Button
-                  className="bg-purple-600 hover:bg-purple-700"
-                  onClick={() => navigate('/organizer/create-quiz/step3')}
-                  disabled={quizData.questions.length === 0}
-                >
-                  Далее →
-                </Button>
-              </div>
+              <Button
+                onClick={() => navigate('/organizer/create-quiz/step3')}
+                disabled={quizData.questions.length === 0}
+                className="flex items-center gap-2 text-sm font-bold bg-[#6C63FF] text-white px-6 py-3 rounded-xl hover:bg-[#5550e8] transition-all shadow-md shadow-[#6C63FF]/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <ChevronRight size={16} />
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Dialog для создания/редактирования вопроса */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl p-6">
           <DialogHeader>
-            <DialogTitle>
-              {editingIndex !== null ? 'Редактировать вопрос' : 'Новый вопрос'}
+            <DialogTitle className="text-2xl font-extrabold text-[#1a1535]" style={{ fontFamily: "'Nunito', sans-serif" }}>
+              {editingIndex !== null ? 'Edit Question' : 'New Question'}
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {/* Тип вопроса */}
             <div className="space-y-2">
-              <Label>Тип вопроса</Label>
+              <label className="text-sm font-semibold text-[#1a1535]">Question Type</label>
               <Select
                 value={currentQuestion.type}
                 onValueChange={(value: any) => {
@@ -357,8 +396,8 @@ export const CreateQuizStep2 = () => {
                   });
                 }}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите тип вопроса" />
+                <SelectTrigger className="w-full bg-[#f4f3ff] border-2 border-[rgba(108,99,255,0.12)] rounded-xl px-4 py-3 text-[#1a1535] text-sm focus:outline-none focus:ring-2 focus:ring-[#6C63FF]/30 focus:border-[#6C63FF] transition-all">
+                  <SelectValue placeholder="Select question type" />
                 </SelectTrigger>
                 <SelectContent>
                   {QUESTION_TYPES.map((type) => (
@@ -370,42 +409,37 @@ export const CreateQuizStep2 = () => {
               </Select>
             </div>
 
-            {/* Текст вопроса */}
             <div className="space-y-2">
-              <Label htmlFor="questionText">
-                Текст вопроса <span className="text-red-500">*</span>
-              </Label>
+              <label className="text-sm font-semibold text-[#1a1535]">
+                Question Text <span className="text-red-500">*</span>
+              </label>
               <Textarea
-                id="questionText"
-                placeholder="Введите текст вопроса..."
+                placeholder="Enter your question..."
                 value={currentQuestion.questionText}
                 onChange={(e) => setCurrentQuestion({
                   ...currentQuestion,
                   questionText: e.target.value,
                 })}
-                className={errors.questionText ? 'border-red-500' : ''}
+                className={`w-full bg-[#f4f3ff] border-2 ${errors.questionText ? 'border-red-500' : 'border-[rgba(108,99,255,0.12)]'} rounded-xl px-4 py-3 text-[#1a1535] text-sm focus:outline-none focus:ring-2 focus:ring-[#6C63FF]/30 focus:border-[#6C63FF] transition-all resize-none`}
                 rows={3}
               />
-              {errors.questionText && (
-                <p className="text-red-500 text-sm">{errors.questionText}</p>
-              )}
+              {errors.questionText && <p className="text-red-500 text-xs">{errors.questionText}</p>}
             </div>
 
-            {/* URL изображения для вопроса с изображением */}
             {currentQuestion.type === 'image' && (
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">URL изображения</Label>
+                <label className="text-sm font-semibold text-[#1a1535]">Image URL</label>
                 <Input
-                  id="imageUrl"
                   placeholder="https://example.com/image.jpg"
                   value={currentQuestion.imageUrl}
                   onChange={(e) => setCurrentQuestion({
                     ...currentQuestion,
                     imageUrl: e.target.value,
                   })}
+                  className="w-full bg-[#f4f3ff] border-2 border-[rgba(108,99,255,0.12)] rounded-xl px-4 py-3 text-[#1a1535] text-sm focus:outline-none focus:ring-2 focus:ring-[#6C63FF]/30 focus:border-[#6C63FF] transition-all"
                 />
                 {currentQuestion.imageUrl && (
-                  <div className="mt-2 p-2 border rounded-lg">
+                  <div className="mt-2 p-2 border border-[rgba(108,99,255,0.12)] rounded-xl">
                     <img
                       src={currentQuestion.imageUrl}
                       alt="Preview"
@@ -419,51 +453,51 @@ export const CreateQuizStep2 = () => {
               </div>
             )}
 
-            {/* Варианты ответов для вопросов с выбором */}
             {(currentQuestion.type === 'single_choice' || currentQuestion.type === 'multiple_choice') && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label>Варианты ответов</Label>
+                  <label className="text-sm font-semibold text-[#1a1535]">Answer Options</label>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={handleAddOption}
+                    className="flex items-center gap-1 text-sm font-semibold text-[#6C63FF] border-[rgba(108,99,255,0.2)] hover:bg-[#f0efff]"
                   >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Добавить вариант
+                    <Plus size={14} />
+                    Add Option
                   </Button>
                 </div>
 
                 {errors.options && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{errors.options}</AlertDescription>
+                  <Alert variant="destructive" className="bg-red-50 border-red-200">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-600 text-sm">{errors.options}</AlertDescription>
                   </Alert>
                 )}
 
                 <div className="space-y-2">
                   {currentQuestion.options?.map((option, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-500 w-6">
+                      <span className="text-sm font-medium text-[#6b6a8a] w-6">
                         {String.fromCharCode(65 + index)}
                       </span>
                       <Input
-                        placeholder={`Вариант ${String.fromCharCode(65 + index)}`}
+                        placeholder={`Option ${String.fromCharCode(65 + index)}`}
                         value={option.text}
                         onChange={(e) => handleOptionChange(index, 'text', e.target.value)}
-                        className="flex-1"
+                        className="flex-1 bg-[#f4f3ff] border-2 border-[rgba(108,99,255,0.12)] rounded-xl px-4 py-2.5 text-[#1a1535] text-sm focus:outline-none focus:ring-2 focus:ring-[#6C63FF]/30 focus:border-[#6C63FF] transition-all"
                       />
                       <button
                         type="button"
-                        className={`px-3 py-1 text-sm rounded border ${
+                        className={`px-3 py-1.5 text-sm font-semibold rounded-xl border-2 transition-all ${
                           option.isCorrect
-                            ? 'bg-green-500 text-white border-green-500'
-                            : 'bg-white border-gray-300 hover:bg-gray-50'
+                            ? 'bg-[#4CAF50] text-white border-[#4CAF50]'
+                            : 'bg-white border-[rgba(108,99,255,0.15)] text-[#6b6a8a] hover:border-[#6C63FF]/30'
                         }`}
                         onClick={() => handleOptionChange(index, 'isCorrect', !option.isCorrect)}
                       >
-                        {currentQuestion.type === 'single_choice' ? 'Верно' : '✓'}
+                        {currentQuestion.type === 'single_choice' ? 'Correct' : '✓'}
                       </button>
                       {currentQuestion.options && currentQuestion.options.length > 1 && (
                         <Button
@@ -471,9 +505,9 @@ export const CreateQuizStep2 = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveOption(index)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-[#6b6a8a] hover:text-red-600"
                         >
-                          <X className="w-4 h-4" />
+                          <X size={16} />
                         </Button>
                       )}
                     </div>
@@ -481,45 +515,35 @@ export const CreateQuizStep2 = () => {
                 </div>
 
                 {currentQuestion.type === 'single_choice' && (
-                  <p className="text-sm text-gray-500">
-                    🔘 Выберите один правильный вариант
-                  </p>
+                  <p className="text-xs text-[#6b6a8a]">🔘 Select one correct answer</p>
                 )}
                 {currentQuestion.type === 'multiple_choice' && (
-                  <p className="text-sm text-gray-500">
-                    ☑️ Выберите один или несколько правильных вариантов
-                  </p>
+                  <p className="text-xs text-[#6b6a8a]">☑️ Select one or more correct answers</p>
                 )}
               </div>
             )}
 
-            {/* Правильный ответ для текстового вопроса */}
             {currentQuestion.type === 'text' && (
               <div className="space-y-2">
-                <Label htmlFor="correctAnswer">
-                  Правильный ответ <span className="text-red-500">*</span>
-                </Label>
+                <label className="text-sm font-semibold text-[#1a1535]">
+                  Correct Answer <span className="text-red-500">*</span>
+                </label>
                 <Input
-                  id="correctAnswer"
-                  placeholder="Введите правильный ответ..."
+                  placeholder="Enter the correct answer..."
                   value={currentQuestion.correctAnswer}
                   onChange={(e) => setCurrentQuestion({
                     ...currentQuestion,
                     correctAnswer: e.target.value,
                   })}
-                  className={errors.correctAnswer ? 'border-red-500' : ''}
+                  className={`w-full bg-[#f4f3ff] border-2 ${errors.correctAnswer ? 'border-red-500' : 'border-[rgba(108,99,255,0.12)]'} rounded-xl px-4 py-3 text-[#1a1535] text-sm focus:outline-none focus:ring-2 focus:ring-[#6C63FF]/30 focus:border-[#6C63FF] transition-all`}
                 />
-                {errors.correctAnswer && (
-                  <p className="text-red-500 text-sm">{errors.correctAnswer}</p>
-                )}
+                {errors.correctAnswer && <p className="text-red-500 text-xs">{errors.correctAnswer}</p>}
               </div>
             )}
 
-            {/* Баллы */}
             <div className="space-y-2">
-              <Label htmlFor="points">Баллы за вопрос</Label>
+              <label className="text-sm font-semibold text-[#1a1535]">Points</label>
               <Input
-                id="points"
                 type="number"
                 min="1"
                 max="100"
@@ -528,16 +552,24 @@ export const CreateQuizStep2 = () => {
                   ...currentQuestion,
                   points: parseInt(e.target.value) || 10,
                 })}
+                className="w-full bg-[#f4f3ff] border-2 border-[rgba(108,99,255,0.12)] rounded-xl px-4 py-3 text-[#1a1535] text-sm focus:outline-none focus:ring-2 focus:ring-[#6C63FF]/30 focus:border-[#6C63FF] transition-all"
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              Отмена
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="border-2 border-[rgba(108,99,255,0.15)] text-[#6b6a8a] hover:text-[#1a1535] hover:bg-white px-6 py-2.5 rounded-xl"
+            >
+              Cancel
             </Button>
-            <Button onClick={handleSaveQuestion} className="bg-purple-600 hover:bg-purple-700">
-              {editingIndex !== null ? 'Сохранить' : 'Добавить'}
+            <Button
+              onClick={handleSaveQuestion}
+              className="bg-[#6C63FF] text-white font-bold px-6 py-2.5 rounded-xl hover:bg-[#5550e8] transition-all shadow-md shadow-[#6C63FF]/25 active:scale-95"
+            >
+              {editingIndex !== null ? 'Save' : 'Add'}
             </Button>
           </DialogFooter>
         </DialogContent>

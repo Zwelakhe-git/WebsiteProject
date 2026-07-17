@@ -1,7 +1,6 @@
 // src/pages/organizer/QuizControlRoom.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { io, Socket } from 'socket.io-client';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Badge } from '@/app/components/ui/badge';
@@ -9,7 +8,6 @@ import { Progress } from '@/app/components/ui/progress';
 import { Avatar, AvatarFallback } from '@/app/components/ui/avatar';
 import {
   Play,
-  Pause,
   Users,
   Copy,
   CheckCircle,
@@ -20,21 +18,12 @@ import {
   AlertCircle,
   ChevronRight,
   ChevronLeft,
-  Send,
-  UserCheck,
   Timer,
   Trophy,
   Share2,
-  QrCode,
+  Loader2,
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/app/components/ui/alert';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/app/components/ui/dialog';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -69,9 +58,8 @@ export const QuizControlRoom = () => {
   const [searchParams] = useSearchParams();
   const roomCode = searchParams.get('room');
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, connectSocket, disconnectSocket, isSocketConnected, socketClient } = useAuth();
   
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1);
@@ -88,75 +76,90 @@ export const QuizControlRoom = () => {
   const [quizTitle, setQuizTitle] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [timeLimit, setTimeLimit] = useState(30);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const timeLimit = 30; // из настроек квиза
 
-  // Подключение к WebSocket
+  // Подключение к WebSocket через AuthContext
   useEffect(() => {
     if (!roomCode) {
       navigate('/organizer/dashboard');
       return;
     }
 
-    const newSocket = io(import.meta.env.VITE_WS_URL || 'http://localhost:5000', {
-      query: { roomCode, role: 'organizer', userId: user?.id },
-    });
+    if (!user) {
+      console.log('❌ No user, redirecting to login');
+      navigate('/login');
+      return;
+    }
 
-    setSocket(newSocket);
+    console.log('🔄 QuizControlRoom: Setting up socket connection...');
+    
+    // Подключаемся через AuthContext
+    connectSocket(roomCode, user.id, user.username, 'organizer');
 
     // Загрузка данных квиза
     loadQuizData();
 
+    // Cleanup
     return () => {
-      newSocket.disconnect();
+      console.log('🧹 QuizControlRoom: Cleaning up...');
       if (timerRef.current) clearInterval(timerRef.current);
+      // НЕ отключаем сокет, так как он может понадобиться
     };
-  }, [roomCode]);
+  }, [roomCode, user]);
 
-  // WebSocket обработчики
+  // Настройка WebSocket обработчиков
   useEffect(() => {
-    if (!socket) return;
+    if (!socketClient || !isSocketConnected) {
+      console.log('⏳ Waiting for socket connection...');
+      return;
+    }
 
-    socket.on('participants-update', (data: { participants: string[] }) => {
-      // Обновляем список участников
+    const socket = socketClient.getSocket();
+    if (!socket) {
+      console.log('❌ No socket available');
+      return;
+    }
+
+    console.log('✅ QuizControlRoom: Setting up socket event listeners...');
+
+    // Обработчики событий
+    const onParticipantsUpdate = (data: { participants: any[] }) => {
+      console.log('👥 QuizControlRoom: Participants update:', data);
+      
       setParticipants(prev => {
         const currentIds = new Set(prev.map(p => p.id));
         const newParticipants = data.participants
-          .filter(id => !currentIds.has(id))
-          .map(id => ({
-            id,
-            username: `Участник ${id.slice(0, 6)}`,
+          .filter(p => !currentIds.has(p.userId))
+          .map(p => ({
+            id: p.userId,
+            username: p.username,
             score: 0,
             hasAnswered: false,
           }));
         return [...prev, ...newParticipants];
       });
-    });
-
-    socket.on('participant-joined', (data: { userId: string; username: string }) => {
-      setParticipants(prev => [
-        ...prev,
-        {
-          id: data.userId,
-          username: data.username,
-          score: 0,
-          hasAnswered: false,
-        },
-      ]);
       updateStats();
-    });
+    };
 
-    socket.on('participant-left', (data: { userId: string }) => {
-      setParticipants(prev => prev.filter(p => p.id !== data.userId));
-      updateStats();
-    });
+    const onPlayerReadyUpdate = (data: { 
+      userId: string; 
+      isReady: boolean; 
+      readyCount: number;
+      totalParticipants: number;
+    }) => {
+      console.log('🔄 QuizControlRoom: Player ready update:', data);
+    };
 
-    socket.on('answer-received', (data: { 
+    const onAnswerReceived = (data: { 
       userId: string; 
       isCorrect: boolean; 
       points: number;
     }) => {
+      console.log('📊 QuizControlRoom: Answer received:', data);
       setParticipants(prev => 
         prev.map(p => 
           p.id === data.userId 
@@ -169,34 +172,68 @@ export const QuizControlRoom = () => {
         )
       );
       updateStats();
-    });
+    };
 
-    socket.on('quiz-ended', () => {
+    const onLeaderboardUpdate = (data: { leaderboard: any[] }) => {
+      console.log('🏆 QuizControlRoom: Leaderboard update:', data);
+      setParticipants(prev => 
+        prev.map(p => {
+          const entry = data.leaderboard.find(l => l.userId === p.id);
+          return entry ? { ...p, score: entry.score } : p;
+        })
+      );
+      updateStats();
+    };
+
+    const onQuizEnded = (data: any) => {
+      console.log('🏁 QuizControlRoom: Quiz ended:', data);
       setShowResults(true);
       setIsQuizActive(false);
       setIsQuestionActive(false);
       if (timerRef.current) clearInterval(timerRef.current);
-    });
-
-    return () => {
-      socket.off('participants-update');
-      socket.off('participant-joined');
-      socket.off('participant-left');
-      socket.off('answer-received');
-      socket.off('quiz-ended');
+      
+      // Переход на страницу результатов
+      setTimeout(() => {
+        navigate(`/leaderboard/${quizId}`);
+      }, 2000);
     };
-  }, [socket]);
+
+    const onError = (data: { message: string }) => {
+      console.error('❌ QuizControlRoom: Socket error:', data);
+      setConnectionError(data.message);
+    };
+
+    // Регистрируем обработчики
+    socket.on('participants-update', onParticipantsUpdate);
+    socket.on('player-ready-update', onPlayerReadyUpdate);
+    socket.on('answer-received', onAnswerReceived);
+    socket.on('leaderboard-update', onLeaderboardUpdate);
+    socket.on('quiz-ended', onQuizEnded);
+    socket.on('error', onError);
+
+    // Cleanup
+    return () => {
+      console.log('🧹 QuizControlRoom: Removing socket event listeners...');
+      socket.off('participants-update', onParticipantsUpdate);
+      socket.off('player-ready-update', onPlayerReadyUpdate);
+      socket.off('answer-received', onAnswerReceived);
+      socket.off('leaderboard-update', onLeaderboardUpdate);
+      socket.off('quiz-ended', onQuizEnded);
+      socket.off('error', onError);
+    };
+  }, [socketClient, isSocketConnected, quizId, navigate]);
 
   const loadQuizData = async () => {
     try {
+      setIsLoading(true);
       const response = await api.get(`/quiz/${quizId}`);
       const quiz = response.data.quiz;
       setQuizTitle(quiz.title);
       setQuestions(quiz.questions || []);
+      setTimeLimit(quiz.timeLimit || 30);
       
       // Подсчет участников
       if (quiz.participants) {
-        //console.log(quiz.participants);
         setParticipants(quiz.participants.map((p: any) => ({
           id: p._id,
           username: p.username,
@@ -208,6 +245,8 @@ export const QuizControlRoom = () => {
       setIsQuizActive(quiz.status === 'active');
     } catch (error) {
       console.error('Error loading quiz:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -249,19 +288,29 @@ export const QuizControlRoom = () => {
     }, 1000);
   };
 
-  const startQuiz = () => {
-    if (!socket || questions.length === 0) return;
+  const startQuiz = async () => {
+    if (!socketClient?.isConnected() || questions.length === 0) return;
     
-    setIsQuizActive(true);
-    setCurrentQuestionIndex(-1);
-    setShowResults(false);
-    
-    // Обновляем статус квиза
-    api.post(`/room/start/${quizId}`).catch(console.error);
+    try {
+      setIsQuizActive(true);
+      setCurrentQuestionIndex(-1);
+      setShowResults(false);
+      
+      // Обновляем статус квиза
+      await api.post(`/room/start/${quizId}`);
+      
+      // Отправляем событие через WebSocket
+      socketClient.emit('start-quiz', { roomCode });
+      
+      console.log('🚀 Quiz started!');
+    } catch (error) {
+      console.error('Error starting quiz:', error);
+      setConnectionError('Не удалось запустить квиз');
+    }
   };
 
   const startQuestion = (index: number) => {
-    if (!socket || index >= questions.length) return;
+    if (!socketClient?.isConnected() || index >= questions.length) return;
 
     setCurrentQuestionIndex(index);
     setIsQuestionActive(true);
@@ -271,7 +320,7 @@ export const QuizControlRoom = () => {
     setParticipants(prev => prev.map(p => ({ ...p, hasAnswered: false })));
     
     // Отправляем вопрос через WebSocket
-    socket.emit('start-question', {
+    socketClient.emit('start-question', {
       roomCode,
       questionIndex: index,
     });
@@ -291,7 +340,7 @@ export const QuizControlRoom = () => {
     }
     
     // Отправляем результаты вопроса
-    socket?.emit('end-question', { roomCode });
+    socketClient?.emit('end-question', { roomCode });
     
     // Показываем результаты через секунду
     setTimeout(() => {
@@ -316,17 +365,19 @@ export const QuizControlRoom = () => {
   };
 
   const endQuiz = () => {
-    if (!socket) return;
+    if (!socketClient?.isConnected()) return;
     setIsEnding(true);
     
     console.log('🏁 Ending quiz...', { roomCode, quizId });
     
     // Отправляем событие завершения с quizId
-    socket.emit('end-quiz', { roomCode, quizId });
+    socketClient.emit('end-quiz', { roomCode, quizId });
     
-    // Слушаем ответ от сервера
-    socket.once('quiz-ended', (data) => {
+    // Ждем ответа от сервера
+    const socket = socketClient.getSocket();
+    socket?.once('quiz-ended', (data) => {
       console.log('📊 Quiz ended with results:', data);
+      setIsEnding(false);
       // Переходим на страницу результатов с quizId
       setTimeout(() => {
         navigate(`/leaderboard/${quizId}`);
@@ -337,6 +388,7 @@ export const QuizControlRoom = () => {
     setTimeout(() => {
       if (isEnding) {
         console.log('⚠️ Timeout waiting for quiz-ended event, redirecting...');
+        setIsEnding(false);
         navigate(`/leaderboard/${quizId}`);
       }
     }, 5000);
@@ -349,20 +401,44 @@ export const QuizControlRoom = () => {
   };
 
   const getInitials = (name: string) => {
-    return name?.slice(0, 2).toUpperCase();
-  };
-
-  const getStatusColor = (hasAnswered: boolean) => {
-    return hasAnswered ? 'text-green-500' : 'text-gray-400';
-  };
-
-  const formatTime = (seconds: number) => {
-    return `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`;
+    return name?.slice(0, 2).toUpperCase() || '??';
   };
 
   const currentQuestion = currentQuestionIndex >= 0 && currentQuestionIndex < questions.length
     ? questions[currentQuestionIndex]
     : null;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-500">Загрузка квиза...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (connectionError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{connectionError}</AlertDescription>
+            </Alert>
+            <Button 
+              onClick={() => window.location.reload()} 
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Попробовать снова
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -621,7 +697,14 @@ export const QuizControlRoom = () => {
                   onClick={endQuiz}
                   disabled={isEnding}
                 >
-                  {isEnding ? 'Завершение...' : 'Завершить квиз'}
+                  {isEnding ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Завершение...
+                    </>
+                  ) : (
+                    'Завершить квиз'
+                  )}
                 </Button>
               </div>
             )}

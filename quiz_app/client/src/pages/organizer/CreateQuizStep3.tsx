@@ -11,13 +11,62 @@ import {
   Users, 
   Tag,
   AlertCircle,
-  ArrowRight,
-  Sparkles
+  ChevronLeft,
+  Sparkles,
+  Eye,
+  Star,
+  Zap,
 } from 'lucide-react';
 import { useQuizCreation } from '@/hooks/useQuizCreation';
-import { api } from '@/lib/api';
 import { Alert, AlertDescription, AlertTitle } from '@/app/components/ui/alert';
 import { quizApi, questionApi } from '@/lib/api';
+
+// Progress Steps Component
+const ProgressSteps = ({ currentStep }: { currentStep: number }) => {
+  const steps = ['Basic Info', 'Questions', 'Preview & Publish'];
+  
+  return (
+    <div className="mb-10">
+      <div className="flex justify-between mb-3">
+        {steps.map((s, i) => (
+          <span
+            key={s}
+            className={`text-xs font-semibold transition-colors ${
+              currentStep > i ? "text-[#6C63FF]" : currentStep === i + 1 ? "text-[#1a1535]" : "text-[#6b6a8a]"
+            }`}
+          >
+            Step {i + 1}: {s}
+          </span>
+        ))}
+      </div>
+      <div className="h-2 bg-[#ededf5] rounded-full overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${(currentStep / 3) * 100}%`,
+            background: "linear-gradient(90deg, #6C63FF, #4f46e5)",
+          }}
+        />
+      </div>
+      <div className="flex justify-between mt-2">
+        {steps.map((_, i) => (
+          <div
+            key={i}
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all -mt-5 border-2 ${
+              currentStep > i
+                ? "bg-[#6C63FF] border-[#6C63FF] text-white"
+                : currentStep === i + 1
+                ? "bg-white border-[#6C63FF] text-[#6C63FF]"
+                : "bg-white border-[#ededf5] text-[#6b6a8a]"
+            }`}
+          >
+            {currentStep > i ? '✓' : i + 1}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export const CreateQuizStep3 = () => {
   const navigate = useNavigate();
@@ -30,51 +79,48 @@ export const CreateQuizStep3 = () => {
   const totalPoints = quizData.questions.reduce((sum, q) => sum + q.points, 0);
 
   const handlePublish = async () => {
-  setIsPublishing(true);
-  setPublishError(null);
+    setIsPublishing(true);
+    setPublishError(null);
 
-  try {
-    // 1. Создаем квиз
-    const quizResponse = await quizApi.create({
-      title: quizData.title,
-      description: quizData.description,
-      category: quizData.category,
-      timeLimit: quizData.timeLimit,
-    });
+    try {
+      const quizResponse = await quizApi.create({
+        title: quizData.title,
+        description: quizData.description,
+        category: quizData.category,
+        timeLimit: quizData.timeLimit,
+      });
 
-    const quizId = quizResponse.data.quiz.id;
+      const quizId = quizResponse.data.quiz.id;
 
-    // 2. Добавляем вопросы
-    const questionsData = quizData.questions.map((q, index) => ({
-      quizId,
-      type: q.type,
-      questionText: q.questionText,
-      imageUrl: q.imageUrl || '',
-      options: q.options || [],
-      correctAnswer: q.correctAnswer || '',
-      points: q.points,
-      order: index,
-    }));
+      const questionsData = quizData.questions.map((q, index) => ({
+        quizId,
+        type: q.type,
+        questionText: q.questionText,
+        imageUrl: q.imageUrl || '',
+        options: q.options || [],
+        correctAnswer: q.correctAnswer || '',
+        points: q.points,
+        order: index,
+      }));
 
-    await questionApi.bulkAdd({
-      quizId,
-      questions: questionsData,
-    });
+      await questionApi.bulkAdd({
+        quizId,
+        questions: questionsData,
+      });
 
-    setPublishedQuizId(quizId);
-    resetQuizData();
+      setPublishedQuizId(quizId);
+      resetQuizData();
 
-    // Переход на страницу управления
-    setTimeout(() => {
-      navigate(`/organizer/quiz/${quizId}/control`);
-    }, 1500);
+      setTimeout(() => {
+        navigate(`/organizer/quiz/${quizId}/control`);
+      }, 1500);
 
-  } catch (error: any) {
-    setPublishError(error.response?.data?.error || 'Ошибка при публикации квиза');
-  } finally {
-    setIsPublishing(false);
-  }
-};
+    } catch (error: any) {
+      setPublishError(error.response?.data?.error || 'Error publishing quiz');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -87,208 +133,121 @@ export const CreateQuizStep3 = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto max-w-4xl px-4">
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">
-              1
+    <div className="min-h-screen bg-[#f8f7ff] pt-24 pb-16 px-6" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <div className="max-w-2xl mx-auto">
+        <ProgressSteps currentStep={3} />
+
+        <div className="space-y-5">
+          <div className="bg-white rounded-3xl shadow-sm border border-[rgba(108,99,255,0.08)] p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-[#f0efff] flex items-center justify-center">
+                <Eye size={22} className="text-[#6C63FF]" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold text-[#1a1535]" style={{ fontFamily: "'Nunito', sans-serif" }}>
+                  Preview &amp; Publish
+                </h2>
+                <p className="text-[#6b6a8a] text-xs">Everything looks good? Hit publish!</p>
+              </div>
             </div>
-            <div className="h-0.5 flex-1 bg-purple-600" />
-            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">
-              2
+
+            {/* Mini quiz card - как в Figma */}
+            <div
+              className="rounded-2xl p-6 mb-6 text-white relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #6C63FF, #2563eb)" }}
+            >
+              <div className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">
+                {quizData.category || 'General'}
+              </div>
+              <h3 className="text-xl font-extrabold mb-1" style={{ fontFamily: "'Nunito', sans-serif" }}>
+                {quizData.title || 'Untitled Quiz'}
+              </h3>
+              <p className="text-white/70 text-sm mb-4">
+                {quizData.description || 'No description provided'}
+              </p>
+              <div className="flex gap-4 text-xs text-white/80">
+                <span className="flex items-center gap-1">
+                  <Clock size={12} />
+                  {quizData.timeLimit}s / question
+                </span>
+                <span className="flex items-center gap-1">
+                  <Star size={12} />
+                  {totalQuestions} questions
+                </span>
+              </div>
             </div>
-            <div className="h-0.5 flex-1 bg-purple-600" />
-            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center text-sm font-bold">
-              3
+
+            {/* Questions preview */}
+            <div className="space-y-2">
+              {quizData.questions.map((q, i) => (
+                <div key={q.id} className="flex items-center gap-3 py-3 border-b border-[rgba(108,99,255,0.06)] last:border-0">
+                  <span className="text-xs font-bold text-[#6b6a8a] w-5 shrink-0">{i + 1}.</span>
+                  <span className="text-sm text-[#1a1535] font-medium flex-1">{q.questionText}</span>
+                  <span className="text-xs text-[#6b6a8a]">{q.points} pts</span>
+                  <span className="text-xs text-[#6b6a8a]">{getTypeIcon(q.type)}</span>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>Основная информация</span>
-            <span>Добавление вопросов</span>
-            <span className="text-purple-600 font-semibold">Публикация</span>
-          </div>
-        </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Preview Card */}
-          <div className="md:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Предпросмотр квиза</CardTitle>
-                <p className="text-gray-500">Проверьте все данные перед публикацией</p>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Основная информация */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Основная информация</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Название</p>
-                      <p className="font-medium">{quizData.title || 'Без названия'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Категория</p>
-                      <p className="font-medium">{quizData.category || 'Не выбрана'}</p>
-                    </div>
-                    <div className="md:col-span-2">
-                      <p className="text-sm text-gray-500">Описание</p>
-                      <p className="font-medium">{quizData.description || 'Без описания'}</p>
-                    </div>
-                  </div>
-                </div>
+          {/* Publish button - как в Figma */}
+          <button
+            onClick={handlePublish}
+            disabled={totalQuestions === 0 || isPublishing || !!publishedQuizId}
+            className="w-full flex items-center justify-center gap-3 text-white font-bold py-5 rounded-2xl text-base shadow-xl shadow-[#6C63FF]/25 hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: "linear-gradient(135deg, #6C63FF, #4f46e5)" }}
+          >
+            {isPublishing ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                Publishing...
+              </>
+            ) : publishedQuizId ? (
+              <>
+                <CheckCircle size={20} />
+                Published!
+              </>
+            ) : (
+              <>
+                <Sparkles size={20} />
+                Publish Quiz
+              </>
+            )}
+          </button>
 
-                <div className="border-t border-gray-200" />
+          {publishError && (
+            <Alert variant="destructive" className="bg-red-50 border-red-200">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-600 text-sm">{publishError}</AlertDescription>
+            </Alert>
+          )}
 
-                {/* Статистика */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-3">Статистика</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <BookOpen className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                      <p className="text-sm text-gray-500">Вопросов</p>
-                      <p className="font-bold text-lg">{totalQuestions}</p>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <Clock className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-                      <p className="text-sm text-gray-500">Время на вопрос</p>
-                      <p className="font-bold text-lg">{quizData.timeLimit}с</p>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <Tag className="w-5 h-5 text-green-600 mx-auto mb-1" />
-                      <p className="text-sm text-gray-500">Всего баллов</p>
-                      <p className="font-bold text-lg">{totalPoints}</p>
-                    </div>
-                    <div className="p-3 bg-gray-50 rounded-lg text-center">
-                      <Users className="w-5 h-5 text-orange-600 mx-auto mb-1" />
-                      <p className="text-sm text-gray-500">Макс. участников</p>
-                      <p className="font-bold text-lg">100</p>
-                    </div>
-                  </div>
-                </div>
+          {totalQuestions === 0 && (
+            <Alert variant="destructive" className="bg-yellow-50 border-yellow-200">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-600 text-sm">
+                Add at least one question before publishing
+              </AlertDescription>
+            </Alert>
+          )}
 
-                <div className="border-t border-gray-200" />
-
-                {/* Список вопросов */}
-                <div>
-                  <h3 className="font-semibold text-lg mb-3">Вопросы</h3>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {quizData.questions.map((q, index) => (
-                      <div
-                        key={q.id}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                      >
-                        <span className="text-sm font-medium text-gray-500 w-6">
-                          #{index + 1}
-                        </span>
-                        <span className="text-sm">{getTypeIcon(q.type)}</span>
-                        <p className="flex-1 text-sm line-clamp-1">
-                          {q.questionText || 'Без текста'}
-                        </p>
-                        <Badge variant="outline" className="text-green-600 border-green-300">
-                          {q.points} баллов
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Sidebar - Publish */}
-          <div className="space-y-6">
-            {/* Summary Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Готов к публикации</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Вопросов</span>
-                  <span className="font-semibold">{totalQuestions}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Категория</span>
-                  <span className="font-semibold">{quizData.category || '-'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Время на вопрос</span>
-                  <span className="font-semibold">{quizData.timeLimit}с</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-500">Всего баллов</span>
-                  <span className="font-semibold text-purple-600">{totalPoints}</span>
-                </div>
-
-                {totalQuestions === 0 && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Добавьте хотя бы один вопрос
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {publishError && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{publishError}</AlertDescription>
-                  </Alert>
-                )}
-
-                {publishedQuizId && (
-                  <Alert className="bg-green-50 border-green-200">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <AlertTitle className="text-green-600">Квиз опубликован!</AlertTitle>
-                    <AlertDescription className="text-green-600">
-                      Перенаправление в комнату управления...
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                <Button
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                  onClick={handlePublish}
-                  disabled={totalQuestions === 0 || isPublishing || !!publishedQuizId}
-                >
-                  {isPublishing ? (
-                    <>Публикация...</>
-                  ) : publishedQuizId ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Опубликовано!
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Опубликовать квиз
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Navigation */}
-            <Card>
-              <CardContent className="p-4 space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate('/organizer/create-quiz/step2')}
-                >
-                  ← Назад
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full text-gray-500"
-                  onClick={() => navigate('/organizer/dashboard')}
-                >
-                  Отмена
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Navigation */}
+          <div className="flex justify-between pt-4">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/organizer/create-quiz/step2')}
+              className="flex items-center gap-2 text-sm font-semibold text-[#6b6a8a] hover:text-[#1a1535] transition-colors px-5 py-3 rounded-xl hover:bg-white border-2 border-[rgba(108,99,255,0.15)]"
+            >
+              <ChevronLeft size={16} />
+              Back
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/organizer/dashboard')}
+              className="text-sm font-semibold text-[#6b6a8a] hover:text-red-600 transition-colors px-5 py-3 rounded-xl hover:bg-white"
+            >
+              Cancel
+            </Button>
           </div>
         </div>
       </div>

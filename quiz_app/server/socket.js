@@ -32,6 +32,7 @@ module.exports = (io) => {
     // Присоединение к комнате
     socket.on('join-room', async (data) => {
       console.log(`📡 join-room event from ${username}:`, data);
+      
       logRoomsState();
       
       try {
@@ -66,6 +67,11 @@ module.exports = (io) => {
         }
 
         const room = rooms.get(roomCode);
+
+        if(room.organizerId === data.userId){
+          console.log("denying join room for oraganizer");
+          return;
+        }
         
         // Проверяем, не присоединился ли уже пользователь
         if (!room.participants.has(userId)) {
